@@ -68,7 +68,6 @@ router.post('/auth/login', async (req, res, next) => {
   if (connected) return next()
 
   const { username, password, keep_connected } = req.body || {}
-  const errors = new ErrorsGenerator()
 
   let username_is_email = false
 
