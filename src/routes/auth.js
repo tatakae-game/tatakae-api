@@ -85,7 +85,7 @@ router.post('/auth/login', async (req, res, next) => {
       const valid = await argon2.verify(user.password, password)
 
       if (valid) {
-        const token = await tokens.create(!!keep_connected)
+        const token = await tokens.create(user._id, !!keep_connected)
 
         return res.send({
           success: true,
