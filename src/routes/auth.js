@@ -30,13 +30,15 @@ router.post('/auth/register', async (req, res, next) => {
   const errors = new ErrorsGenerator()
 
   if (users.username_regex.test(username)) {
-    errors.assert(!users.model.exists({ username }), "This username is already used.")
+    const exists = await users.model.exists({ username })
+    errors.assert(!exists, "This username is already used.")
   } else {
     errors.push("The username doesn't match the conditions.")
   }
 
   if (users.email_regex.test(email)) {
-    errors.assert(!users.model.exists({ email }), "This email is already used.")
+    const exists = await users.model.exists({ email })
+    errors.assert(!exists, "This email is already used.")
   } else {
     errors.push("The email is not valid.")
   }
