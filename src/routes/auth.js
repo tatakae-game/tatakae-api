@@ -54,7 +54,9 @@ router.post('/auth/register', async (req, res, next) => {
   await users.model.create({
     username,
     email,
-    password: await argon2.hash(password),
+    password: await argon2.hash(password, {
+      type: argon2.argon2id,
+    }),
   })
 
   res.send({
@@ -81,7 +83,9 @@ router.post('/auth/login', async (req, res, next) => {
         [username_is_email ? "email" : "username"]: username,
       })
 
-      const valid = await argon2.verify(user.password, password)
+      const valid = await argon2.verify(user.password, password, {
+        type: argon2.argon2id,
+      })
 
       if (valid) {
         const token = await tokens.create(user._id, !!keep_connected)
