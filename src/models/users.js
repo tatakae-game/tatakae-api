@@ -24,7 +24,5 @@ export async function find_by_token(token) {
     expires: { $gt: Date.now(), }
   })
 
-  console.log(user)
-
   return await model.findById(user)
 }
