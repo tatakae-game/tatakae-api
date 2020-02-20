@@ -1,5 +1,4 @@
 import * as constants from '../constants'
-import * as auth from '../auth'
 
 const default_options = {
   auth: constants.AUTH,
@@ -8,15 +7,19 @@ const default_options = {
 /**
  * @returns {import('express').RequestHandler}
  */
-export default (options = default_options) => async (req, res, next) => {
-  const token = req.token
-  const connected = await auth.check(token)
+export default (options = default_options) => {
+  options = {
+    ...default_options,
+    ...(options || {}),
+  }
 
   const need_auth = options.auth === constants.AUTH
 
-  if (need_auth !== connected) {
-    return next('route')
-  }
+  return (req, res, next) => {
+    if (need_auth !== req.authed) {
+      return next('route')
+    }
 
-  next()
+    next()
+  }
 }
