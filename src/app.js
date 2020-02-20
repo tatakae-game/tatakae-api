@@ -13,6 +13,9 @@ app.use(body_parser.json())
 import token_middleware from './middlewares/token'
 app.use(token_middleware)
 
+import auth_middleware from './middlewares/auth'
+app.use(auth_middleware)
+
 import cors from 'cors'
 app.use(cors())
 
