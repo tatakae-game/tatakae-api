@@ -2,10 +2,10 @@ import { Router } from 'express'
 const router = Router()
 export default router
 
-import argon2 from 'argon2'
-
 import * as auth from '../auth'
+
 import { ErrorsGenerator } from '../utils/errors'
+import * as hash from '../utils/hash'
 
 import * as constants from '../constants'
 import guard from '../middlewares/guard'
@@ -52,9 +52,7 @@ router.post('/auth/register', guard({ auth: constants.NOT_AUTH }), async (req, r
   await users.model.create({
     username,
     email,
-    password: await argon2.hash(password, {
-      type: argon2.argon2id,
-    }),
+    password: await hash.hash(password),
   })
 
   res.send({
@@ -78,9 +76,7 @@ router.post('/auth/login', guard({ auth: constants.NOT_AUTH }), async (req, res,
         [username_is_email ? "email" : "username"]: username,
       })
 
-      const valid = await argon2.verify(user.password, password, {
-        type: argon2.argon2id,
-      })
+      const valid = await hash.verify(user.password, password)
 
       if (valid) {
         const token = await tokens.create(user._id, !!keep_connected)
