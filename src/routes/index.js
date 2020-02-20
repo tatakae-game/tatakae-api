@@ -3,5 +3,7 @@ const router = Router()
 export default router
 
 router.get('/', (req, res) => {
-  res.send("Hello, world!")
+  res.send({
+    name: 'Tatakae!',
+  })
 })
