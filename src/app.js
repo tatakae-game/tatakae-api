@@ -22,10 +22,9 @@ app.use(cors())
 import * as routes from './routes'
 app.use(Object.values(routes))
 
+import { ErrorsGenerator } from './utils/errors'
 app.use('*', (req, res) => {
-  res.status(404).send({
-    error: '404 Not Found',
-  })
+  res.status(404).send(ErrorsGenerator.gen(['Not Found']))
 })
 
 const port = process.env.PORT || 3000

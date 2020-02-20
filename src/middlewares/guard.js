@@ -1,4 +1,5 @@
 import * as constants from '../constants'
+import { ErrorsGenerator } from '../utils/errors'
 
 const default_options = {
   auth: constants.AUTH,
@@ -17,7 +18,11 @@ export default (options = default_options) => {
 
   return (req, res, next) => {
     if (need_auth !== req.authed) {
-      return next('route')
+      if (req.authed) {
+        return res.status(403).send(ErrorsGenerator.gen(['Forbidden']))
+      } else {
+        return res.status(401).send(ErrorsGenerator.gen(['Unauthorized']))
+      }
     }
 
     next()

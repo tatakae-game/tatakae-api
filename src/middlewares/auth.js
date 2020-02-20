@@ -1,10 +1,10 @@
-import * as auth from '../auth'
+import * as tokens from '../models/tokens'
 
 /**
  * @type {import('express').RequestHandler} 
  */
 export default async (req, res, next) => {
-  req.authed = await auth.check(req.token)
+  req.authed = await tokens.check(req.token)
 
   next()
 }

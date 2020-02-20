@@ -2,8 +2,6 @@ import { Router } from 'express'
 const router = Router()
 export default router
 
-import * as auth from '../auth'
-
 import { ErrorsGenerator } from '../utils/errors'
 import * as hash from '../utils/hash'
 
@@ -13,14 +11,10 @@ import guard from '../middlewares/guard'
 import * as users from '../models/users'
 import * as tokens from '../models/tokens'
 
-router.post('/auth/check', async (req, res) => {
-  if (req.authed) {
-    res.send({
-      pass: true,
-    })
-  } else {
-    res.status(403).send(auth.invalid_token())
-  }
+router.post('/auth/check', (req, res) => {
+  res.send({
+    valid: req.authed,
+  })
 })
 
 router.post('/auth/register', guard({ auth: constants.NOT_AUTH }), async (req, res, next) => {
@@ -44,7 +38,7 @@ router.post('/auth/register', guard({ auth: constants.NOT_AUTH }), async (req, r
   errors.assert(users.password_regex.test(password), "The password doesn't match the conditions.")
 
   if (errors.has_errors) {
-    return res.status(400).send({
+    return res.send({
       errors: errors.messages,
     })
   }
