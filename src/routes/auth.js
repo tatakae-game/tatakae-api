@@ -7,13 +7,14 @@ import argon2 from 'argon2'
 import * as auth from '../auth'
 import { ErrorsGenerator } from '../utils/errors'
 
+import * as constants from '../constants'
+import guard from '../middlewares/guard'
+
 import * as users from '../models/users'
 import * as tokens from '../models/tokens'
 
 router.post('/auth/check', async (req, res) => {
-  const token = req.token
-
-  if (await auth.check(token)) {
+  if (req.authed) {
     res.send({
       pass: true,
     })
@@ -22,10 +23,7 @@ router.post('/auth/check', async (req, res) => {
   }
 })
 
-router.post('/auth/register', async (req, res, next) => {
-  const connected = await auth.check(req.token)
-  if (connected) return next()
-
+router.post('/auth/register', guard({ auth: constants.NOT_AUTH }), async (req, res, next) => {
   const { username, email, password } = req.body || {}
   const errors = new ErrorsGenerator()
 
@@ -65,10 +63,7 @@ router.post('/auth/register', async (req, res, next) => {
 })
 
 
-router.post('/auth/login', async (req, res, next) => {
-  const connected = await auth.check(req.token)
-  if (connected) return next()
-
+router.post('/auth/login', guard({ auth: constants.NOT_AUTH }), async (req, res, next) => {
   const { username, password, keep_connected } = req.body || {}
 
   let username_is_email = false
