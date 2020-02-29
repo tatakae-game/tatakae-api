@@ -45,3 +45,16 @@ router.get('/users/search', guard({ auth: constants.AUTH }), async (req, res) =>
     res.send(ErrorsGenerator.gen(['"username" parameter requiered.']))
   }
 })
+
+router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
+  try {
+    const user = await users.model.findById(req.params.id).lean()
+
+    res.send({
+      success: true,
+      profile: users.sanitize(user),
+    })
+  } catch {
+    res.status(404).send(ErrorsGenerator.gen([`This user doesn't exist.`]))
+  }
+})
