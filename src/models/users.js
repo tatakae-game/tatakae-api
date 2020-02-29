@@ -26,3 +26,14 @@ export async function find_by_token(token) {
 
   return await model.findById(user)
 }
+
+export function sanitize(user) {
+  if (!user) return {}
+
+  return {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    registred: user.created,
+  }
+}

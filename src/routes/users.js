@@ -12,10 +12,6 @@ router.get('/users/me', guard({ auth: constants.AUTH }), async (req, res) => {
 
   res.send({
     success: true,
-    profile: {
-      username: user.username,
-      email: user.email,
-      registred: user.created,
-    },
+    profile: users.sanitize(user),
   })
 })
