@@ -22,7 +22,7 @@ router.get('/users/search', guard({ auth: constants.AUTH }), async (req, res) =>
   const { username } = req.query
 
   if (username) {
-    if ((typeof username != 'string') || (typeof username != 'number')) {
+    if ((typeof username !== 'string') && (typeof username !== 'number')) {
       return res.send(ErrorsGenerator.gen(['"username" parameter must be a string.']))
     }
 
@@ -49,6 +49,10 @@ router.get('/users/search', guard({ auth: constants.AUTH }), async (req, res) =>
 router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const user = await users.model.findById(req.params.id).lean()
+
+    if (!user) {
+      return res.status(404).send(ErrorsGenerator.gen([`This user doesn't exist.`]))
+    }
 
     res.send({
       success: true,
