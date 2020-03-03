@@ -25,7 +25,7 @@ router.post('/auth/register', guard({ auth: constants.NOT_AUTH }), async (req, r
     const exists = await users.model.exists({ username })
     errors.assert(!exists, "This username is already used.")
   } else {
-    errors.push("The username doesn't match the conditions.")
+    errors.push("The username does not match the conditions.")
   }
 
   if (users.email_regex.test(email)) {
@@ -35,7 +35,7 @@ router.post('/auth/register', guard({ auth: constants.NOT_AUTH }), async (req, r
     errors.push("The email is not valid.")
   }
 
-  errors.assert(users.password_regex.test(password), "The password doesn't match the conditions.")
+  errors.assert(users.password_regex.test(password), "The password does not match the conditions.")
 
   if (errors.has_errors) {
     return res.send({
@@ -83,5 +83,5 @@ router.post('/auth/login', guard({ auth: constants.NOT_AUTH }), async (req, res,
     } catch { }
   }
 
-  res.send(ErrorsGenerator.gen(['Email and password does not match.']))
+  res.send(ErrorsGenerator.gen(['Credentials do not match.']))
 })
