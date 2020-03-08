@@ -12,6 +12,7 @@ import token_middleware from './middlewares/token'
 import auth_middleware from './middlewares/auth'
 
 import * as routes from './routes'
+import * as socket_middewares from './socket-middleware'
 
 import { ErrorsGenerator } from './utils/errors'
 
@@ -53,7 +54,7 @@ if (cluster.isMaster) {
   })
 
   io.on('connection', socket => {
-    
+    Object.values(socket_middewares).forEach((middleware) => middleware(socket))
   })
 
   const port = process.env.PORT || 3000
