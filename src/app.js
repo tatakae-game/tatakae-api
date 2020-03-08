@@ -5,11 +5,14 @@ import express from 'express'
 import body_parser from 'body-parser'
 import helmet from 'helmet'
 import cors from 'cors'
+import SocketIO from 'socket.io'
+import http from 'http'
 
 import token_middleware from './middlewares/token'
 import auth_middleware from './middlewares/auth'
 
 import * as routes from './routes'
+import * as socket_middewares from './socket-middleware'
 
 import { ErrorsGenerator } from './utils/errors'
 
@@ -29,6 +32,9 @@ if (cluster.isMaster) {
   })
 } else {
   const app = express()
+  const server = new http.Server(app)
+  const io = SocketIO(server)
+
   app.set('trust proxy', true)
 
   app.use(helmet())
@@ -47,6 +53,10 @@ if (cluster.isMaster) {
     res.status(404).send(ErrorsGenerator.gen(['Not Found']))
   })
 
+  io.on('connection', socket => {
+    Object.values(socket_middewares).forEach((middleware) => middleware(socket))
+  })
+
   const port = process.env.PORT || 3000
-  app.listen(port, () => console.log(`${process.pid.toString().padStart(5, ' ')} started running on http://localhost:${port}`))
+  server.listen(port, () => console.log(`${process.pid.toString().padStart(5, ' ')} started running on http://localhost:${port}`))
 }
