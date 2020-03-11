@@ -1,8 +1,10 @@
 /**
- * @param {import('socket.io').Socket} socket 
+ * @param {import('socket.io').Server} io 
  */
-export default (socket) => {
-  socket.on('matchmaking', (data) => {
-    console.log('game on')
+export default (io) => {
+  io.on('connection', socket => {
+    socket.on('matchmaking', (data) => {
+      console.log('game on')
+    })
   })
 }

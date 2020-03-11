@@ -53,9 +53,7 @@ if (cluster.isMaster) {
     res.status(404).send(ErrorsGenerator.gen(['Not Found']))
   })
 
-  io.on('connection', socket => {
-    Object.values(socket_middewares).forEach((middleware) => middleware(socket))
-  })
+  Object.values(socket_middewares).forEach(middleware => middleware(io))
 
   const port = process.env.PORT || 3000
   server.listen(port, () => console.log(`${process.pid.toString().padStart(5, ' ')} started running on http://localhost:${port}`))
