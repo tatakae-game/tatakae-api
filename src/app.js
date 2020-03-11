@@ -55,7 +55,7 @@ if (cluster.isMaster) {
     res.status(404).send(ErrorsGenerator.gen(['Not Found']))
   })
 
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     socket.token = socket.handshake.headers?.authorization || socket.handshake.query?.token
 
     if (await tokens.check(socket.token)) {
