@@ -78,6 +78,10 @@ router.post('/auth/login', guard({ auth: constants.NOT_AUTH }), async (req, res,
         return res.send({
           success: true,
           token: token.value,
+          user: {
+            id: user.id,
+            username: user.username,
+          },
         })
       }
     } catch { }
