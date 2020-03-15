@@ -12,7 +12,7 @@ import token_middleware from './middlewares/token'
 import auth_middleware from './middlewares/auth'
 
 import * as routes from './routes'
-import * as socket_middewares from './socket-middleware'
+import * as socket_middewares from './socket-endpoints'
 
 import { ErrorsGenerator } from './utils/errors'
 
