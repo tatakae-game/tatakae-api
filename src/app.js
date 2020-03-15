@@ -14,11 +14,10 @@ import auth_middleware from './middlewares/auth'
 import * as routes from './routes'
 import * as socket_middewares from './socket-middleware'
 
-import * as tokens from './models/tokens'
-
 import { ErrorsGenerator } from './utils/errors'
 
-const cpus = os.cpus().length
+const is_dev = process.env.NODE_ENV !== 'production'
+const cpus = is_dev ? 1 : os.cpus().length
 
 if (cluster.isMaster) {
   for (let i = 0; i < cpus; i++) {
@@ -53,16 +52,6 @@ if (cluster.isMaster) {
 
   app.use('*', (req, res) => {
     res.status(404).send(ErrorsGenerator.gen(['Not Found']))
-  })
-
-  io.use(async (socket, next) => {
-    socket.token = socket.handshake.headers?.authorization || socket.handshake.query?.token
-
-    if (await tokens.check(socket.token)) {
-      next()
-    } else {
-      next(new Error('Authentication needed.'))
-    }
   })
 
   Object.values(socket_middewares).forEach(middleware => middleware(io))
