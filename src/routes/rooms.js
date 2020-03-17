@@ -13,7 +13,7 @@ import * as rooms from '../models/rooms'
 router.get('/chat/rooms', guard({ auth: constants.AUTH }), async (req, res) => {
   const user = await users.find_by_token(req.token)
 
-  const result = await rooms.model.find({ users: user.id })
+  const result = await rooms.model.find({ users: user._id })
 
   res.send({
     success: true,
@@ -43,17 +43,15 @@ router.post('/chat/room', guard({ auth: constants.AUTH }), async (req, res) => {
   errors.assert(typeof is_ticket === 'boolean', 'is_ticket must be a boolean.')
 
   if (errors.has_errors) {
-    return res.send({
-      errors: errors.messages,
-    })
+    res.send(ErrorsGenerator.gen([`This room does not exist.`]))
   }
 
   const user = await users.find_by_token(req.token)
 
   const room = await rooms.model.create({
     name,
-    author: user,
-    users: [user],
+    author: user._id,
+    users: [user._id],
     is_ticket: req.body.is_ticket,
   })
 
@@ -62,4 +60,3 @@ router.post('/chat/room', guard({ auth: constants.AUTH }), async (req, res) => {
     room: rooms.sanitize(room),
   })
 })
-// GET /chat/room/{id} -> Récupération d'une room
