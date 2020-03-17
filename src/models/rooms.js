@@ -8,10 +8,11 @@ export const Message = new db.Schema({
 })
 
 export const model = db.model('Room', {
-  status: { type: String, },
+  status: { type: String, default: 'opened' },
   author: { type: db.Types.ObjectId, },
   name: { type: String, },
   messages: { type: [Message], default: [], },
+  users: { type: [db.Types.ObjectId], default: [], },
   created: { type: Date, default: Date.now, },
   is_ticket: { type: Boolean, default: false, },
   assigned_to: { type: db.Types.ObjectId, },
