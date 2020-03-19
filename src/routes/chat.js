@@ -2,6 +2,8 @@ import { Router } from 'express'
 const router = Router()
 export default router
 
+import db from '../db'
+
 import * as constants from '../constants'
 import guard from '../middlewares/guard'
 
@@ -28,6 +30,36 @@ router.get('/chat/rooms/:room_id', guard({ auth: constants.AUTH }), async (req, 
     res.send({
       success: true,
       room: rooms.sanitize(room)
+    })
+  } catch {
+    res.status(404)
+      .send(ErrorsGenerator.gen([`This room does not exist.`]))
+  }
+})
+
+router.post('/chat/rooms/:room_id/invite', guard({ auth: constants.AUTH }), async (req, res) => {
+  try {
+    const errors = new ErrorsGenerator()
+    if (!db.Types.ObjectId.isValid(req.body.user)) {
+      return res.send(ErrorsGenerator.gen(["Invalid user id."]))
+    }
+
+    const user_exists = await users.model.exists({ _id: req.body.user })
+
+    if (!user_exists) {
+      return res.send(ErrorsGenerator.gen("This user doesn't exists"))
+    }
+
+    await rooms.model.updateOne({
+      _id: req.params.room_id,
+    }, {
+      $push: {
+        users: req.body.user,
+      },
+    })
+
+    res.send({
+      success: true,
     })
   } catch {
     res.status(404)
