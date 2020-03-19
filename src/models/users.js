@@ -9,6 +9,7 @@ export const model = db.model('User', {
   email: { type: String, },
   password: { type: String, },
   groups: [{ type: db.Types.ObjectId, ref: 'Group', }],
+  score: { type: Number, default: 0, },
   created: { type: Date, default: Date.now, },
 })
 
@@ -37,6 +38,7 @@ export function sanitize(user) {
     id: user._id,
     username: user.username,
     email: user.email,
+    score: user.score,
     registred: user.created,
   }
 }
