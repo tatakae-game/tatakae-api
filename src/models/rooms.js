@@ -38,6 +38,7 @@ export function sanitize(room) {
     author: room.author,
     name: room.name,
     messages: (room.messages || []).map(sanitize_message),
+    users: (room.users || []),
     created: room.created,
     is_ticket: room.is_ticket,
     assigned_to: room.assigned_to,
