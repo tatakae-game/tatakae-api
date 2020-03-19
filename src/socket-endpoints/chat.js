@@ -3,8 +3,6 @@ import token_middlware from '../socket-middlewares/token'
 import * as users from '../models/users'
 import * as rooms from '../models/rooms'
 
-import { ErrorsGenerator } from '../utils/errors'
-
 /**
  * @param {import('socket.io').Server} io 
  */

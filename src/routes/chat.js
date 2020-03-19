@@ -31,19 +31,19 @@ router.get('/chat/rooms/:room_id', guard({ auth: constants.AUTH }), async (req, 
     })
   } catch {
     res.status(404)
-    .send(ErrorsGenerator.gen([`This room does not exist.`]))
+      .send(ErrorsGenerator.gen([`This room does not exist.`]))
   }
 })
 
-router.post('/chat/room', guard({ auth: constants.AUTH }), async (req, res) => {
-  const { name, is_ticket } = req.body || {}
+router.post('/chat/rooms', guard({ auth: constants.AUTH }), async (req, res) => {
+  const { name, is_ticket = false } = req.body || {}
   const errors = new ErrorsGenerator()
 
   errors.assert(typeof name === 'string', 'Invalid name.')
   errors.assert(typeof is_ticket === 'boolean', 'is_ticket must be a boolean.')
 
   if (errors.has_errors) {
-    res.send(ErrorsGenerator.gen([`This room does not exist.`]))
+    return res.send(ErrorsGenerator.gen())
   }
 
   const user = await users.find_by_token(req.token)
