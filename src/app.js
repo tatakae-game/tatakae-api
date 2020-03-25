@@ -48,7 +48,7 @@ if (cluster.isMaster) {
 
   app.use(cors())
 
-  app.use(Object.values(routes))
+  app.use(...Object.values(routes))
 
   app.use('*', (req, res) => {
     res.status(404).send(ErrorsGenerator.gen(['Not Found']))
