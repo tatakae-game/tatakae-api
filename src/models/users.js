@@ -8,6 +8,7 @@ export const model = db.model('User', {
   username: { type: String, },
   email: { type: String, },
   password: { type: String, },
+  groups: { type: [db.Types.ObjectId], ref: 'Group', default: [], },
   created: { type: Date, default: Date.now, },
 })
 
