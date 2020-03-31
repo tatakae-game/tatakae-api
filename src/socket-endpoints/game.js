@@ -1,5 +1,6 @@
 import token_middlware from '../socket-middlewares/token'
 import * as users from '../models/users'
+import * as wandbox from '../services/wandbox.service'
 
 /**
  * @param {import('socket.io').Server} io 
@@ -11,31 +12,19 @@ export default (io) => {
     try {
 
       const user = await users.find_by_token(socket.token)
-      const closest_high_opponents = await users.model.find({
-        score: {
-          $gte: user.score,
-        },
-        _id: {
-          $ne: user._id,
-        },
-      }).sort({ score: 1 })
-        .limit(5)
-        .lean()
+      const opponent = await users.find_opponent(user)
 
-      const closest_low_opponents = await users.model.find({
-        score: {
-          $lte: user.score,
-        },
-        _id: {
-          $ne: user._id,
-        },
-      }).sort({ score: -1 })
-        .limit(5)
-        .lean()
 
-      const opponents = closest_high_opponents.concat(closest_low_opponents)
 
-      console.log(opponents)
+      socket.emit('match found', {
+        opponent_robot: opponent.robot,
+        robot: user.robot,
+      })
+
+
+      console.log(opponent)
+
+      wandbox.execute_code('console.log("chat")', {chat: 'chat'})
     } catch (e) {
       console.log(e)
     }
