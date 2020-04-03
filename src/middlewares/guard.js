@@ -26,7 +26,7 @@ export default (options = default_options) => {
       }
     }
 
-    const permissions = req.user.groups.reduce((acc, group) => {
+    const permissions = req.user?.groups.reduce((acc, group) => {
       for (const permission of group.permissions) {
         if (permission.value) {
           acc.push(permission.name)
