@@ -10,6 +10,7 @@ import http from 'http'
 
 import token_middleware from './middlewares/token'
 import auth_middleware from './middlewares/auth'
+import user_middleware from './middlewares/users'
 
 import * as routes from './routes'
 import * as socket_middewares from './socket-endpoints'
@@ -45,6 +46,7 @@ if (cluster.isMaster) {
 
   app.use(token_middleware)
   app.use(auth_middleware)
+  app.use(user_middleware)
 
   app.use(cors())
 
