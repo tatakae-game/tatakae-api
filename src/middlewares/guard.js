@@ -18,17 +18,7 @@ export default (options = default_options) => {
   const need_auth = options.auth === constants.AUTH
 
   return (req, res, next) => {
-    const permissions = req.user.groups.reduce((acc, group) => {
-      for (const permission of group.permissions) {
-        if (permission.value) {
-          acc.push(permission.name)
-        }
-      }
-      return acc
-    }, [])
-
-    const authorized = options.permissions.every(v => permissions.includes(v))
-
+    
     if (need_auth !== req.authed) {
       if (req.authed) {
         return res.status(403).send(ErrorsGenerator.gen(['Forbidden']))
