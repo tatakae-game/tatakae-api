@@ -9,6 +9,7 @@ import * as constants from '../constants'
 import guard from '../middlewares/guard'
 
 import * as users from '../models/users'
+import * as groups from '../models/groups'
 import * as tokens from '../models/tokens'
 
 router.post('/auth/check', (req, res) => {
@@ -49,9 +50,14 @@ router.post('/auth/register', guard({ auth: constants.NOT_AUTH }), async (req, r
     })
   }
 
+  const player_group = await groups.model.findOne({
+    name: 'Players',
+  })
+
   await users.model.create({
     username,
     email,
+    groups: [player_group._id],
     password: await hash.hash(password),
   })
 
