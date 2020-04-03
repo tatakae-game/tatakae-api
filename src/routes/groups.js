@@ -16,62 +16,77 @@ const group_schema = Joi.object().keys({
 })
 
 router.get('/groups', guard({ auth: constants.AUTH }), async (req, res) => {
-  const result = await groups.model.find()
+  try {
+    const result = await groups.model.find()
 
-  res.status(200).json({
-    success: true,
-    groups: result,
-  })
-
+    res.json({
+      success: true,
+      groups: result,
+    })
+  } catch (e) {
+    res.status(500).json({
+      success: false,
+      errors: ['An error occured.'],
+    })
+  }
 })
 
 router.get('/groups/:group_id', guard({ auth: constants.AUTH }), async (req, res) => {
-
   try {
     const group = await groups.model.findById({ _id: req.params.group_id })
 
-    res.status(200).json({
+    res.json({
       success: true,
       group,
     })
-
   } catch {
     res.status(404).json({
       success: false,
       errors: ['The group does not exist.']
     })
   }
-
 })
 
 router.post('/groups', guard({ auth: constants.AUTH }), schema({ body: group_schema }), async (req, res) => {
-  const { name, permissions } = req.body || {}
+  try {
+    const { name, permissions } = req.body || {}
 
-  const group = groups.model.create({
-    name,
-    permissions,
-  })
+    const group = await groups.model.create({
+      name,
+      permissions,
+    })
 
-  res.status(201).send({
-    success: true,
-    group,
-  })
-
+    res.status(201).send({
+      success: true,
+      group,
+    })
+  } catch (e) {
+    res.status(500).json({
+      success: false,
+      errors: 'Failed to create the new group.'
+    })
+  }
 })
 
 router.put('/groups/:group_id', guard({ auth: constants.AUTH }), schema({ body: group_schema }), async (req, res) => {
-  const { name, permissions } = req.body || {}
+  try {
+    const { name, permissions } = req.body || {}
 
-  await groups.model.updateOne(
-    { _id: req.params.group_id },
-    {
-      name,
-      permissions,
-    }
-  )
+    await groups.model.updateOne(
+      { _id: req.params.group_id },
+      {
+        name,
+        permissions,
+      }
+    )
 
-  res.status(200).json({
-    success: true,
-  })
-
+    res.json({
+      success: true,
+    })
+  } catch (e) {
+    res.status(500).json({
+      success: false,
+      errors: 'Failed to update the group.'
+    })
+  }
 })
