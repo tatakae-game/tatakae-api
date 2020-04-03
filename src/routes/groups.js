@@ -10,18 +10,13 @@ import schema from '../middlewares/schema'
 
 import * as groups from '../models/groups'
 
-const group_schema = Joi.object().keys({
-  name: Joi.string().alphanum().required(),
-  permissions: Joi.array().required().min(1)
-})
-
 router.get('/groups', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
-    const result = await groups.model.find()
+    const groups = await groups.model.find()
 
     res.json({
       success: true,
-      groups: result,
+      groups,
     })
   } catch (e) {
     res.status(500).json({
@@ -42,14 +37,19 @@ router.get('/groups/:group_id', guard({ auth: constants.AUTH }), async (req, res
   } catch {
     res.status(404).json({
       success: false,
-      errors: ['The group does not exist.']
+      errors: ['The group does not exist.'],
     })
   }
 })
 
-router.post('/groups', guard({ auth: constants.AUTH }), schema({ body: group_schema }), async (req, res) => {
+const groups_post_schema = Joi.object().keys({
+  name: Joi.string().alphanum().required(),
+  permissions: Joi.array().required().min(1)
+})
+
+router.post('/groups', guard({ auth: constants.AUTH }), schema({ body: groups_post_schema }), async (req, res) => {
   try {
-    const { name, permissions } = req.body || {}
+    const { name, permissions } = req.body
 
     const group = await groups.model.create({
       name,
@@ -63,14 +63,14 @@ router.post('/groups', guard({ auth: constants.AUTH }), schema({ body: group_sch
   } catch (e) {
     res.status(500).json({
       success: false,
-      errors: 'Failed to create the new group.'
+      errors: ['Failed to create the new group.'],
     })
   }
 })
 
-router.put('/groups/:group_id', guard({ auth: constants.AUTH }), schema({ body: group_schema }), async (req, res) => {
+router.put('/groups/:group_id', guard({ auth: constants.AUTH }), schema({ body: groups_post_schema }), async (req, res) => {
   try {
-    const { name, permissions } = req.body || {}
+    const { name, permissions } = req.body
 
     await groups.model.updateOne(
       { _id: req.params.group_id },
@@ -86,7 +86,7 @@ router.put('/groups/:group_id', guard({ auth: constants.AUTH }), schema({ body: 
   } catch (e) {
     res.status(500).json({
       success: false,
-      errors: 'Failed to update the group.'
+      errors: ['Failed to update the group.'],
     })
   }
 })
