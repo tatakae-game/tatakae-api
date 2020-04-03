@@ -2,30 +2,54 @@ import { Router } from 'express'
 const router = Router()
 export default router
 
+import Joi from '@hapi/joi'
+
 import * as constants from '../constants'
 import guard from '../middlewares/guard'
-
-import { ErrorsGenerator } from '../utils/errors'
+import schema from '../middlewares/schema'
 
 import * as groups from '../models/groups'
 
-router.post('/groups', guard({ auth: constants.AUTH }), async (req, res, next) => {
-  const { name, permissions } = req.body || {}
+const group_schema = Joi.object().keys({
+  name: Joi.string().alphanum().required(),
+  permissions: Joi.array().required().min(1)
+})
 
-  const errors = new ErrorsGenerator()
+router.get('/groups', guard({ auth: constants.AUTH }), async (req, res) => {
+  const result = await groups.model.find()
 
-  errors.assert(typeof name === 'string', 'Invalid name')
-  errors.assert(typeof permissions === 'object', 'Invalid permissions')
+  res.status(200).json({
+    success: true,
+    groups: result,
+  })
 
-  if (errors.has_errors()) {
-    return res.status(400).send({
-      errors: errors.messages
+})
+
+router.get('/groups/:group_id', guard({ auth: constants.AUTH }), async (req, res) => {
+
+  try {
+    const group = await groups.model.findById({ _id: req.params.group_id })
+
+    res.status(200).json({
+      success: true,
+      group,
+    })
+
+  } catch {
+    res.status(404).json({
+      success: false,
+      errors: ['The group does not exist.']
     })
   }
 
+})
+
+router.post('/groups', guard({ auth: constants.AUTH }), schema({ body: group_schema }), async (req, res) => {
+  const { name, permissions } = req.body || {}
+
   const group = groups.model.create({
     name,
-    permissions
+    permissions,
   })
 
   res.status(201).send({
@@ -35,27 +59,19 @@ router.post('/groups', guard({ auth: constants.AUTH }), async (req, res, next) =
 
 })
 
-// router.put('/groups/:group_id', guard({ auth: constants.AUTH }), async (req, res, next) => {
-//   const { name, permissions } = req.body || {}
+router.put('/groups/:group_id', guard({ auth: constants.AUTH }), schema({ body: group_schema }), async (req, res) => {
+  const { name, permissions } = req.body || {}
 
-//   const errors = new ErrorsGenerator()
+  await groups.model.updateOne(
+    { _id: req.params.group_id },
+    {
+      name,
+      permissions,
+    }
+  )
 
-//   errors.assert(typeof name === 'string', 'Invalid name')
-//   errors.assert(typeof permissions === 'object', 'Invalid permissions')
-//   errors.assert(groups.model.exists({ _id: req.params.group_id }), 'The group does not exist')
+  res.status(200).json({
+    success: true,
+  })
 
-
-//   if (errors.has_errors()) {
-//     return res.status(400).send({
-//       errors: errors.messages
-//     })
-//   }
-
-//   const group = groups.model.updateOne(
-//     { _id: req.params.group_id },
-//     {
-//       permissions
-//     }
-//   )
-
-// })
+})
