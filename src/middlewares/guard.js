@@ -18,6 +18,14 @@ export default (options = default_options) => {
   const need_auth = options.auth === constants.AUTH
 
   return (req, res, next) => {
+    if (need_auth !== req.authed) {
+      if (req.authed) {
+        return res.status(403).send(ErrorsGenerator.gen(['Forbidden']))
+      } else {
+        return res.status(401).send(ErrorsGenerator.gen(['Unauthorized']))
+      }
+    }
+
     const permissions = req.user.groups.reduce((acc, group) => {
       for (const permission of group.permissions) {
         if (permission.value) {
@@ -28,14 +36,8 @@ export default (options = default_options) => {
     }, [])
 
     const authorized = options.permissions.every(v => permissions.includes(v))
-
-    if (need_auth !== req.authed) {
-      if (req.authed) {
-        return res.status(403).send(ErrorsGenerator.gen(['Forbidden']))
-      } else {
-        return res.status(401).send(ErrorsGenerator.gen(['Unauthorized']))
-      }
-    } else if (!authorized) {
+    
+    if (!authorized) {
       return res.status(401).json(ErrorsGenerator.gen(['Unauthorized']))
     }
 
