@@ -15,7 +15,7 @@ import * as rooms from '../models/rooms'
 router.get('/chat/rooms', guard({ auth: constants.AUTH }), async (req, res) => {
   const user = await users.find_by_token(req.token)
 
-  const result = await rooms.model.find({ users: user._id })
+  const result = await rooms.model.find({ users: user._id, is_ticket: false, })
 
   res.send({
     success: true,
@@ -84,7 +84,7 @@ router.post('/chat/rooms', guard({ auth: constants.AUTH }), async (req, res) => 
     name,
     author: user._id,
     users: [user._id],
-    is_ticket: req.body.is_ticket,
+    is_ticket: is_ticket,
   })
 
   res.send({
