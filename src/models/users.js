@@ -8,7 +8,7 @@ export const model = db.model('User', {
   username: { type: String, },
   email: { type: String, },
   password: { type: String, },
-  groups: { type: [db.Types.ObjectId], ref: 'Group', default: [], },
+  groups: [{ type: db.Types.ObjectId, ref: 'Group', }],
   created: { type: Date, default: Date.now, },
 })
 
@@ -27,7 +27,7 @@ export async function find_by_token(token) {
     expires: { $gt: Date.now(), }
   })
 
-  return await model.findById(user)
+  return await model.findById(user).populate('groups')
 }
 
 export function sanitize(user) {
