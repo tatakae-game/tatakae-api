@@ -13,14 +13,26 @@ import * as users from '../models/users'
 import * as rooms from '../models/rooms'
 
 router.get('/chat/rooms', guard({ auth: constants.AUTH }), async (req, res) => {
-  const user = await users.find_by_token(req.token)
+  try {
+    const user = await users.find_by_token(req.token)
 
-  const result = await rooms.model.find({ users: user._id, is_ticket: false, })
+    const result = await rooms.model.find({
+      users: user._id,
+      is_ticket: false,
+    })
 
-  res.send({
-    success: true,
-    rooms: result.map(rooms.sanitize),
-  })
+    res.send({
+      success: true,
+      rooms: result.map(rooms.sanitize),
+    })
+
+  } catch {
+    res.status(500)
+      .json({
+        success: false,
+        erorrs: ['An error occured.'],
+      })
+  }
 })
 
 router.get('/chat/rooms/:room_id', guard({ auth: constants.AUTH }), async (req, res) => {
@@ -68,27 +80,43 @@ router.post('/chat/rooms/:room_id/invite', guard({ auth: constants.AUTH }), asyn
 })
 
 router.post('/chat/rooms', guard({ auth: constants.AUTH }), async (req, res) => {
-  const { name, is_ticket = false } = req.body || {}
-  const errors = new ErrorsGenerator()
+  try {
+    const { name, is_ticket = false, guest } = req.body || {}
+    const errors = new ErrorsGenerator()
+    const people = []
 
-  errors.assert(typeof name === 'string', 'Invalid name.')
-  errors.assert(typeof is_ticket === 'boolean', 'is_ticket must be a boolean.')
+    errors.assert(typeof name === 'string', 'Invalid name.')
+    errors.assert(typeof is_ticket === 'boolean', 'is_ticket must be a boolean.')
 
-  if (errors.has_errors) {
-    return res.send(ErrorsGenerator.gen())
+    if (errors.has_errors) {
+      return res.send(errors.gen())
+    }
+
+    const user = await users.find_by_token(req.token)
+    const guest_exists = (guest) ? await users.model.exists({ _id: guest }) : false
+
+    if (user === null || (!guest_exists && !is_ticket)) {
+      return res.send(ErrorsGenerator.gen([`User not found.`]))
+    }
+
+    (guest_exists) ? people.push(user.id, guest) : people.push(user.id)
+
+    const room = await rooms.model.create({
+      name,
+      author: user._id,
+      users: people,
+      is_ticket,
+    })
+
+    res.send({
+      success: true,
+      room: rooms.sanitize(room),
+    })
+  } catch {
+    res.status(500).json({
+      success: false,
+      errors: ['An error occured.'],
+    })
   }
 
-  const user = await users.find_by_token(req.token)
-
-  const room = await rooms.model.create({
-    name,
-    author: user._id,
-    users: [user._id],
-    is_ticket: is_ticket,
-  })
-
-  res.send({
-    success: true,
-    room: rooms.sanitize(room),
-  })
 })
