@@ -35,7 +35,7 @@ export default (options = default_options) => {
       return acc
     }, [])
 
-    const authorized = options.permissions.every(v => permissions.includes(v))
+    const authorized = options.permissions.every(v => permissions?.includes(v))
 
     if (!authorized) {
       return res.status(401).json(ErrorsGenerator.gen(['Unauthorized']))
