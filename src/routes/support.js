@@ -12,7 +12,7 @@ import * as users from '../models/users'
 import * as rooms from '../models/rooms'
 
 
-router.get('/support/tickets', guard({ auth: constants.AUTH }), async (req, res) => {
+router.get('/support/tickets', guard({ auth: constants.AUTH, permissions: [constants.ADMIN] }), async (req, res) => {
   try {
     const user = await users.find_by_token(req.token)
 
@@ -35,17 +35,12 @@ router.get('/support/tickets', guard({ auth: constants.AUTH }), async (req, res)
   }
 })
 
-const close_ticekt_schema = Joi.object().keys({
-  status: Joi.string().min(6).max(11).required(),
-})
-
-router.put(`/support/tickets/:id/close`, guard({ auth: constants.AUTH }), schema({ body: close_ticekt_schema }), async (req, res) => {
+router.put(`/support/tickets/:id/close`, guard({ auth: constants.AUTH, permissions: [constants.ADMIN] }), async (req, res) => {
   try {
-    const { status } = req.body || {}
 
     await rooms.model.updateOne(
       { _id: req.params.id },
-      { status, }
+      { status: 'closed', }
     )
 
     res.json({
@@ -62,7 +57,7 @@ router.put(`/support/tickets/:id/close`, guard({ auth: constants.AUTH }), schema
 })
 
 const assigned_to_schema = Joi.object().keys({
-  user: Joi.string().min(24).max(24).required(),
+  user: Joi.string().alphanum().min(24).max(24).required(),
 })
 
 router.put(`/support/tickets/:id/assign`, guard({ auth: constants.AUTH }), schema({ body: assigned_to_schema }), async (req, res) => {
