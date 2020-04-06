@@ -15,7 +15,7 @@ export const model = db.model('Room', {
   users: { type: [db.Types.ObjectId], default: [], },
   created: { type: Date, default: Date.now, },
   is_ticket: { type: Boolean, default: false, },
-  assigned_to: { type: db.Types.ObjectId, default: null },
+  assigned_to: { type: db.Types.ObjectId, },
 })
 
 export function sanitize_message(message) {
