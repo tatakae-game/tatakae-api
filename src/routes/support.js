@@ -12,14 +12,14 @@ import * as users from '../models/users'
 import * as rooms from '../models/rooms'
 
 
-router.get('/support/tickets', guard({ auth: constants.AUTH, permissions: [constants.ADMIN] }), async (req, res) => {
+router.get('/support/tickets', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const user = await users.find_by_token(req.token)
 
     const result = await rooms.model.find({
       users: user._id,
       is_ticket: true,
-      status: 'opened' || 'in progress',
+      status: { $in: ['opened', 'in progress'] },
     })
 
     res.send({
@@ -35,7 +35,7 @@ router.get('/support/tickets', guard({ auth: constants.AUTH, permissions: [const
   }
 })
 
-router.put(`/support/tickets/:id/close`, guard({ auth: constants.AUTH, permissions: [constants.ADMIN] }), async (req, res) => {
+router.put(`/support/tickets/:id/close`, guard({ auth: constants.AUTH }), async (req, res) => {
   try {
 
     await rooms.model.updateOne(
@@ -60,7 +60,7 @@ const assigned_to_schema = Joi.object().keys({
   user: Joi.string().alphanum().min(24).max(24).required(),
 })
 
-router.put(`/support/tickets/:id/assign`, guard({ auth: constants.AUTH }), schema({ body: assigned_to_schema }), async (req, res) => {
+router.put(`/support/tickets/:id/assign`, guard({ auth: constants.AUTH, permissions: [constants.ADMIN]}), schema({ body: assigned_to_schema }), async (req, res) => {
   try {
     const { user } = req.body || {}
 
