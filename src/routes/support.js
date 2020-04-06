@@ -60,7 +60,7 @@ const assigned_to_schema = Joi.object().keys({
   user: Joi.string().alphanum().min(24).max(24).required(),
 })
 
-router.put(`/support/tickets/:id/assign`, guard({ auth: constants.AUTH, permissions: [constants.ADMIN]}), schema({ body: assigned_to_schema }), async (req, res) => {
+router.put(`/support/tickets/:id/assign`, guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_ADMIN]}), schema({ body: assigned_to_schema }), async (req, res) => {
   try {
     const { user } = req.body || {}
 
@@ -75,7 +75,7 @@ router.put(`/support/tickets/:id/assign`, guard({ auth: constants.AUTH, permissi
       return acc
     }, [])
 
-    const authorized = permissions?.includes(constants.ADMIN)
+    const authorized = permissions?.includes(constants.PERMISSION_ADMIN)
 
     if (!authorized) {
       return res.status(400).json({

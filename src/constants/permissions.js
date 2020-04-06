@@ -1,4 +1,4 @@
-export const CHAT = 'Chat'
-export const ADMIN = 'Admin'
-export const EDITOR = 'Editor'
-export const GAME = 'Game'
+export const PERMISSION_CHAT = 'Chat'
+export const PERMISSION_ADMIN = 'Admin'
+export const PERMISSION_EDITOR = 'Editor'
+export const PERMISSION_GAME = 'Game'

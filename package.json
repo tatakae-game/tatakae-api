@@ -5,7 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "dev": "nodemon --exec babel-node .",
-    "start": "babel-node ."
+    "start": "babel-node .",
+    "setup": "babel-node setup.js"
   },
   "keywords": [],
   "author": "",

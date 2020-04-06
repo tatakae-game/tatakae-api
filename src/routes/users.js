@@ -80,7 +80,7 @@ router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
   }
 })
 
-router.put('/users/:id', guard({ auth: constants.AUTH, permissions: [constants.ADMIN] }), schema({ body: user_schema }), async (req, res) => {
+router.put('/users/:id', guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_ADMIN] }), schema({ body: user_schema }), async (req, res) => {
 
   try {
     const { username, email, groups } = req.body || {}
