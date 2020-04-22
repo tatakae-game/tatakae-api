@@ -8,8 +8,7 @@ export async function execute_code(code) {
     const res = await axios.post(wandbox_url, {
       code,
       compiler: "nodejs-head",
-    }
-    )
+    })
 
     if (res.data.program_error) {
       return res.data.program_error
