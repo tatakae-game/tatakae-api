@@ -219,7 +219,7 @@ class Robot {
 
   update_robot_memory(tiles_checked) {
     for (const tile_layers of tiles_checked) {
-      if(tile_layers[0] !== 'limit') {
+      if (tile_layers[0] !== 'limit') {
         this.memory_map[this.convert_coordonates_to_array_address(tile_layers[2].x, tile_layers[2].y)] = tile_layers
       }
     }
@@ -231,7 +231,6 @@ class Robot {
     }
 
     const tiles_coordonates = this.get_contested_tiles(3, true)
-
     if (this.battery >= 1) {
       this.battery -= 1
       const check_action = {
@@ -242,7 +241,6 @@ class Robot {
 
       this.round_movements.actions.push(check_action)
     }
-
   }
 
   pass() {
@@ -251,4 +249,60 @@ class Robot {
   }
 }
 
-export default Robot
+class Map {
+
+  directions = ['up', 'right', 'down', 'left']
+
+  /**
+   * data instantiation
+   */
+
+  constructor(layers) {
+    this.layers = {
+      ground: layers[0].tiles,
+      obstacles: layers[1].tiles,
+      addresses: layers[2].tiles,
+    }
+
+    this.square_size = Math.sqrt(layers[0].tiles.length)
+
+  }
+
+  from_instance(instance, robot, enemy_robots) {
+    const map = new Map(instance.layers)
+
+    for (const property in instance) {
+      map[property] = instance[property]
+    }
+
+    this.robot = robot
+    this.enemy_robots = enemy_robots
+
+    return map
+  }
+
+  /**
+   * Convert address into tile layers
+   */
+
+  get_index_by_address(x, y) {
+    return this.layers.addresses.findIndex((a) => a.x === x && a.y === y)
+  }
+
+  get_tiles_containt(tiles_addresses) {
+    const tiles_containts = []
+    for (const address of tiles_addresses) {
+      const tile_containt = {}
+      const tile_index = this.get_index_by_address(address.x, address.y)
+      for (const layer in this.layers) {
+        tile_containt[layer] = this.layers[layer][tile_index]
+      }
+      tiles_containts.push(tile_containt)
+    }
+
+    return tiles_containts
+  }
+
+}
+
+export default { Robot, Map }
