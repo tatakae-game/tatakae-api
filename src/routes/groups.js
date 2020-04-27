@@ -12,16 +12,16 @@ import * as groups from '../models/groups'
 
 router.get('/groups', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
-    const groups = await groups.model.find()
-
+    const result = await groups.model.find()
+    
     res.json({
       success: true,
-      groups,
+      groups: result,
     })
   } catch (e) {
     res.status(500).json({
       success: false,
-      errors: ['An error occured.'],
+      errors: [e.message],
     })
   }
 })
