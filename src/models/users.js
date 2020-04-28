@@ -9,7 +9,10 @@ export const model = db.model('User', {
   email: { type: String, },
   password: { type: String, },
   groups: [{ type: db.Types.ObjectId, ref: 'Group', }],
+  score: { type: Number, default: 0, },
   created: { type: Date, default: Date.now, },
+  robot: { type: String, default: 'default' },
+  code: {type : String, default: ''}
 })
 
 export const username_regex = XRegExp('^[\\p{L}0-9_]{5,20}$');
@@ -37,6 +40,36 @@ export function sanitize(user) {
     id: user._id,
     username: user.username,
     email: user.email,
+    score: user.score,
     registred: user.created,
+    robot: user.robot,
   }
+}
+
+export async function find_opponent(user) {
+  const closest_high_opponents = await model.find({
+    score: {
+      $gte: user.score,
+    },
+    _id: {
+      $ne: user._id,
+    },
+  }).sort({ score: 1 })
+    .limit(5)
+    .lean()
+
+  const closest_low_opponents = await model.find({
+    score: {
+      $lte: user.score,
+    },
+    _id: {
+      $ne: user._id,
+    },
+  }).sort({ score: -1 })
+    .limit(5)
+    .lean()
+
+  const opponents = closest_high_opponents.concat(closest_low_opponents)
+  const random_index = Math.floor(Math.random() * Math.floor(opponents.length))
+  return opponents[random_index]
 }

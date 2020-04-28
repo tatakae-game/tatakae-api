@@ -1,0 +1,1 @@
+export const WANDBOX_URL = 'https://wandbox.org/api/compile.json'
