@@ -10,11 +10,11 @@ export async function execute_code(code) {
       compiler: "nodejs-head",
     })
 
-    if (res.data.program_error) {
-      return res.data.program_error
+    if (!res.data.program_output) {
+      return res.data
     }
 
-    return JSON.parse(res.data.program_output)
+    return JSON.parse(res.data.program_output).actions
   } catch (e) {
     console.log(e)
   }

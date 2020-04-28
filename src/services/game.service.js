@@ -28,9 +28,31 @@ function fill_addresses(size) {
   return tiles
 }
 
+/**
+ *
+ */
+function return_available_position_on_edge(edge, map) {
+  switch (edge) {
+    case 'up':
+      break
+
+    case 'right':
+      break
+
+    case 'down':
+      break
+
+    case 'left':
+      break
+
+    default:
+      return { x: 0, y: 0 }
+  }
+}
+
 const generate_field = () => {
-  const field_type = game_constants.SELECTABLE_TILES[Math.floor(Math.random() * Math.floor(game_constants.SELECTABLE_TILES.length))]
-  const field_size = game_constants.SELECTABLE_SIZE[Math.floor(Math.random() * Math.floor(game_constants.SELECTABLE_SIZE.length))]
+  const field_type = game_constants.SELECTABLE_TILES[Math.floor(Math.random() * game_constants.SELECTABLE_TILES.length)]
+  const field_size = game_constants.SELECTABLE_SIZE[Math.floor(Math.random() * game_constants.SELECTABLE_SIZE.length)]
 
   return [{
     tiles: fill_ground(field_type, field_size)
@@ -104,6 +126,11 @@ const resetRobots = (robot, opponent_robot) => {
   opponent_robot = opponent_robot.models[opponent_robot.model].battery
 }
 
+const randomize_initial_robot_position = (robot, enemy_robot, map) => {
+  const robot_relative_position = map.directions[Math.floor(Math.random() * Math.floor(map.directions.length))]
+  const enemy_robot_relative_position = map.directions[(map.directions.indexOf(robot_relative_position) + 2) % 4]
+}
+
 
 
 export {
@@ -114,4 +141,5 @@ export {
   end_game,
   sanitize_round_info,
   resetRobots,
+  randomize_initial_robot_position,
 }

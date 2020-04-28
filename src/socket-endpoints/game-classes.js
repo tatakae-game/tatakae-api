@@ -8,7 +8,7 @@ class Robot {
 
   isRunning = true
 
-  models = {
+  static models = {
     default: {
       hp: 50,
       battery: 2,
@@ -21,25 +21,27 @@ class Robot {
     actions: [],
   }
 
-  constructor(model, field) {
+  /**
+   * 
+   * @param {String} model 
+   * @param {Map} map 
+   */
+  constructor(model, map) {
     this.model = model
-    this.field = {
-      tiles_layout: field,
-      field_size: Math.sqrt(field[1].tiles.length),
-    }
     this.position = { x: 0, y: 0 }
     this.orientation = 'up'
+    this.map = map
 
-    if (!this.models[model]) {
+    if (!Robot.models[model]) {
       this.model = 'default'
-      this.hp = this.models.default.hp
-      this.battery = this.models.default.battery
+      this.hp = Robot.models.default.hp
+      this.battery = Robot.models.default.battery
     } else {
-      this.hp = this.models[model].hp
-      this.battery = this.models[model].battery
+      this.hp = Robot.models[model].hp
+      this.battery = Robot.models[model].battery
     }
 
-    this.memory_map = Array(this.field.field_size * this.field.field_size).fill('not_discovered')
+    this.memory_map = Array(map.square_size * map.square_size).fill('not_discovered')
   }
 
   static from_instance(instance) {
@@ -289,7 +291,10 @@ class Map {
     return this.layers.addresses.findIndex((a) => a.x === x && a.y === y)
   }
 
-  get_tiles_containt(tiles_addresses) {
+  /**
+   * @param {{x: number, y: number}[]} tiles_addresses 
+   */
+  get_tiles_layers(tiles_addresses) {
     const tiles_containts = []
     for (const address of tiles_addresses) {
       const tile_containt = {}
@@ -301,6 +306,10 @@ class Map {
     }
 
     return tiles_containts
+  }
+
+  is_tile_praticable(tile_address){
+    
   }
 
 }
