@@ -6,13 +6,15 @@
   "scripts": {
     "dev": "nodemon --exec babel-node .",
     "start": "babel-node .",
-    "setup": "babel-node setup.js"
+    "setup": "babel-node setup.js",
+    "test": "mocha --require @babel/register"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
+    "@babel/register": "^7.9.0",
     "argon2": "^0.26.0",
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",
@@ -20,6 +22,7 @@
     "express": "^4.17.1",
     "glob": "^7.1.6",
     "helmet": "^3.21.2",
+    "mocha": "^7.1.2",
     "mongoose": "^5.9.0",
     "socket.io": "^2.3.0",
     "xregexp": "^4.3.0"
