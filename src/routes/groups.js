@@ -13,10 +13,14 @@ import * as groups from '../models/groups'
 router.get('/groups', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const result = await groups.model.find()
-    
+
+    const default_permissions = groups.get_default_permissions();
+
+    const merged_groups = groups.permission_matcher(result, default_permissions)
+
     res.json({
       success: true,
-      groups: result,
+      groups: merged_groups,
     })
   } catch (e) {
     res.status(500).json({
@@ -44,12 +48,15 @@ router.get('/groups/:group_id', guard({ auth: constants.AUTH }), async (req, res
 
 const groups_post_schema = Joi.object().keys({
   name: Joi.string().alphanum().required(),
-  permissions: Joi.array().required().min(1)
+  // name: Joi.string().min(3).required(),
 })
 
 router.post('/groups', guard({ auth: constants.AUTH }), schema({ body: groups_post_schema }), async (req, res) => {
   try {
-    const { name, permissions } = req.body
+
+    const permissions = groups.get_default_permissions();
+
+    const { name } = req.body
 
     const group = await groups.model.create({
       name,
@@ -68,7 +75,12 @@ router.post('/groups', guard({ auth: constants.AUTH }), schema({ body: groups_po
   }
 })
 
-router.put('/groups/:group_id', guard({ auth: constants.AUTH }), schema({ body: groups_post_schema }), async (req, res) => {
+const groups_put_schema = Joi.object().keys({
+  name: Joi.string().alphanum().required(),
+  permissions: Joi.array()
+})
+
+router.put('/groups/:group_id', guard({ auth: constants.AUTH }), schema({ body: groups_put_schema }), async (req, res) => {
   try {
     const { name, permissions } = req.body
 
