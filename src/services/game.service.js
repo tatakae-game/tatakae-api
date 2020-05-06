@@ -1,4 +1,4 @@
-import * as game_constants from '../constants/field'
+import * as game_constants from '../constants/game'
 
 function fill_ground(type, size) {
   return Array(size * size).fill(type)

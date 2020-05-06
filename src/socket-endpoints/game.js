@@ -6,7 +6,7 @@ import * as users from '../models/users'
 import * as wandbox from '../services/wandbox.service'
 import * as game_service from '../services/game.service'
 import gameClasses from './game-classes'
-import * as game_constants from '../constants/field'
+import * as game_constants from '../constants/game'
 
 /**
  * @param {import('socket.io').Server} io 
