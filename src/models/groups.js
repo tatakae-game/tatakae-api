@@ -20,7 +20,8 @@ export function get_default_permissions() {
   })
 }
 
-export function permission_matcher(groups, default_permissions) {
+export function fill_groups_permissions(groups) {
+  const default_permissions = get_default_permissions();
   for (const group of groups) {
     const updated_permissions = default_permissions.map(permission => {
       const found = group.permissions.find(p => p.name === permission.name)
