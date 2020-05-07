@@ -14,9 +14,7 @@ router.get('/groups', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const result = await groups.model.find()
 
-    const default_permissions = groups.get_default_permissions();
-
-    const merged_groups = groups.permission_matcher(result, default_permissions)
+    const merged_groups = groups.fill_groups_permissions(result)
 
     res.json({
       success: true,
