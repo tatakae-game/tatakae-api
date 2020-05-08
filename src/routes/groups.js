@@ -46,7 +46,6 @@ router.get('/groups/:group_id', guard({ auth: constants.AUTH }), async (req, res
 
 const groups_post_schema = Joi.object().keys({
   name: Joi.string().alphanum().required(),
-  // name: Joi.string().min(3).required(),
 })
 
 router.post('/groups', guard({ auth: constants.AUTH }), schema({ body: groups_post_schema }), async (req, res) => {
@@ -97,6 +96,22 @@ router.put('/groups/:group_id', guard({ auth: constants.AUTH }), schema({ body: 
     res.status(500).json({
       success: false,
       errors: ['Failed to update the group.'],
+    })
+  }
+})
+
+router.get('/permissions', guard({ auth: constants.AUTH }), async (req, res) => {
+  try {
+    const permissions = groups.get_default_permissions()
+    res.json({
+      success: true,
+      permissions,
+    })
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      errors: [error.message],
     })
   }
 })
