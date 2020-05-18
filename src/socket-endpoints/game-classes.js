@@ -15,8 +15,6 @@ class Robot {
     },
   }
 
-  directions = ['up', 'right', 'down', 'left']
-
   round_movements = {
     actions: [],
   }
@@ -34,11 +32,10 @@ class Robot {
 
     if (!Robot.models[model]) {
       this.model = 'default'
-      this.hp = Robot.models.default.hp
-      this.battery = Robot.models.default.battery
-    } else {
-      this.hp = Robot.models[model].hp
-      this.battery = Robot.models[model].battery
+    }
+
+    for (const property in Robot.models[this.model]) {
+      this[property] = Robot.models[this.model][property]
     }
 
     this.memory_map = Array(map.square_size * map.square_size).fill('not_discovered')
@@ -52,32 +49,6 @@ class Robot {
     }
 
     return new_robot
-  }
-
-  /**
-   * Data convertissor
-   */
-  convert_tiles_coordonates_to_tile_layers(tiles) {
-    const tiles_layers = []
-    for (const tile of tiles) {
-      const tile_layers = []
-
-      if (tile.x < 0 || tile.x > this.field.field_size || tile.y < 0 || tile.y > this.field.field_size) {
-        tile_layers.push('limit')
-      } else {
-        for (const layer of this.field.tiles_layout) {
-          tile_layers.push(layer.tiles[this.convert_coordonates_to_array_address(tile.x, tile.y)])
-        }
-      }
-
-      tiles_layers.push(tile_layers)
-    }
-
-    return tiles_layers
-  }
-
-  convert_coordonates_to_array_address(x, y) {
-    return this.field.tiles_layout[2].tiles.findIndex((a) => a.x === x && a.y === y)
   }
 
   /**
@@ -208,11 +179,23 @@ class Robot {
       if (this.battery >= 2) {
         this.battery -= 2
 
-        this.position = this.return_last_available_tile(this.get_contested_tiles(1, false))
-        this.round_movements.actions.push({
+        const new_position = this.map.try_step(this)
+
+        const movement = {
           action: 'walk',
-          new_position: this.position,
-        })
+          new_position,
+        }
+
+        if (JSON.stringify(this.position) === JSON.stringify(new_position)) {
+          movement.event = 'bumped'
+        } else {
+          this.position = new_position
+        }
+
+        //update robot memory on bumped or crossed tiles
+        this.map.update_robot_memory(robot, [new_position])
+
+        this.round_movements.actions.push(movement)
       } else {
         this.isRunning = false
       }
@@ -253,7 +236,9 @@ class Robot {
 
 class Map {
 
-  directions = ['up', 'right', 'down', 'left']
+  static directions = ['up', 'right', 'down', 'left']
+
+  enemy_robots = []
 
   /**
    * data instantiation
@@ -278,7 +263,9 @@ class Map {
     }
 
     this.robot = robot
-    this.enemy_robots = enemy_robots
+    for (const enemy_robot of enemy_robots) {
+      robot.push(enemy_robot)
+    }
 
     return map
   }
@@ -308,8 +295,78 @@ class Map {
     return tiles_containts
   }
 
-  is_tile_praticable(tile_address){
-    
+  /**
+   * 
+   * @param {Robot} robot 
+   */
+  try_step(robot) {
+    const position = robot.position
+    switch (robot.orientation) {
+      case 'up':
+        if (!this.has_obstacle({ x: position.x, y: position.y + 1 }) && this.is_inbound(position.x, position.y + 1)) {
+          return { x: position.x, y: position.y + 1 }
+        }
+        break
+
+      case 'right':
+        if (!this.has_obstacle({ x: position.x + 1, y: position.y }) && this.is_inbound(position.x + 1, position.y)) {
+          return { x: position.x + 1, y: position.y }
+        }
+        break
+
+      case 'down':
+        if (!this.has_obstacle({ x: position.x, y: position.y - 1 }) && this.is_inbound(position.x, position.y - 1)) {
+          return { x: position.x, y: position.y - 1 }
+        }
+        break
+
+      case 'left':
+        if (!this.has_obstacle({ x: position.x - 1, y: position.y }) && this.is_inbound(position.x - 1, position.y)) {
+          return { x: position.x - 1, y: position.y }
+        }
+        break
+    }
+    return robot.position
+  }
+
+  /**
+  * @param {x: number, y: number} tiles_address
+  */
+  has_obstacle(tile_address) {
+    const tile_layers = this.get_tiles_layers([{ x: tile_address.x, y: tile_address.y }])
+    if (tile_layers[0].obstacles !== null || this.get_enemy_on_tile(tile_address) !== null) {
+      return true
+    }
+
+    return false
+  }
+
+  /**
+  * @param {x: number, y: number} tiles_address
+  */
+  get_enemy_on_tile(tile_address) {
+    for (const enemy_robot of this.enemy_robots) {
+      if (enemy_robot.position.x === tile_address.x && enemy_robot.position.y === tile_address.y) {
+        return enemy_robot
+      }
+    }
+
+    return null
+  }
+
+  is_inbound(x, y) {
+    if (x >= 0 && x < this.square_size && y >= 0 && y < this.square_size) {
+      return true
+    }
+    return false
+  }
+
+  update_robot_memory(robot, tiles_addresses) {
+    const tiles_layers = this.get_tiles_layers(tiles_addresses)
+    console.log(tiles_layers)
+    for (const tile_layers of tiles_layers) {
+      robot.memory_map[this.get_index_by_address(tile_layers.addresses.x, tile_layers.addresses.y)] = tile_layers
+    }
   }
 
 }
