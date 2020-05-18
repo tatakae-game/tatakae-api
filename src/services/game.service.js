@@ -127,8 +127,7 @@ const resetRobots = (robot, opponent_robot) => {
 }
 
 const randomize_initial_robot_position = (robot, enemy_robot, map) => {
-  const robot_relative_position = map.directions[Math.floor(Math.random() * Math.floor(map.directions.length))]
-  const enemy_robot_relative_position = map.directions[(map.directions.indexOf(robot_relative_position) + 2) % 4]
+  
 }
 
 
