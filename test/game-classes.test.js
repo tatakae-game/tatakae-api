@@ -65,14 +65,14 @@ describe('robot', () => {
     it('should remove 2 * n-distance battery for every movement', () => {
       const field = game_services.generate_field()
       const map = new game_classes.Map(field)
+      const steps = 3
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
       const robot = new game_classes.Robot('default', map)
-      robot.battery = 8
       robot.position = { x: 0, y: 0 }
-      robot.walk(3)
+      robot.walk(steps)
 
-      assert.equal(robot.battery, 2)
+      assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - (steps * 2))
     })
 
     it('should move robot n-distance tiles in front of him', () => {
@@ -110,6 +110,134 @@ describe('robot', () => {
 
     it.skip('should update robot actions list', () => {
 
+    })
+  })
+
+  describe('clockwise_rotate()', () => {
+    it('should update robot orientation with right next orientation', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'up'
+
+      robot.clockwise_rotation()
+      assert.equal(robot.orientation, 'right')
+    })
+
+    it('should update robot orientation with up if orientation before rotation is left', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'left'
+
+      robot.clockwise_rotation()
+      assert.equal(robot.orientation, 'up')
+    })
+
+    it('should assume multiple rotation', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'left'
+
+      robot.clockwise_rotation()
+      robot.clockwise_rotation()
+      robot.clockwise_rotation()
+
+      assert.equal(robot.orientation, 'down')
+
+    })
+
+    it('should remove 1 battery by rotation', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'left'
+
+      robot.clockwise_rotation()
+
+      assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - 1)
+
+    })
+
+    it('should unable rotate if energy < 1 and report by an OOE', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.battery = 0
+      robot.orientation = 'left'
+
+      robot.clockwise_rotation()
+      assert.equal(robot.orientation, 'left')
+      assert.equal(robot.round_movements.actions[0].action, 'OOE')
+    })
+
+    it('should update robot memory with orientation event', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'left'
+
+      robot.clockwise_rotation()
+      assert.equal(robot.round_movements.actions[0].action, 'turn-right')
+    })
+  })
+
+  describe('reverse_clockwise_rotation()', () => {
+    it('should update robot orientation with right next orientation', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'down'
+
+      robot.reverse_clockwise_rotation()
+      assert.equal(robot.orientation, 'right')
+    })
+
+    it('should update robot orientation with left if orientation before rotation is up', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'up'
+
+      robot.reverse_clockwise_rotation()
+      assert.equal(robot.orientation, 'left')
+    })
+
+    it('should assume multiple rotation', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'left'
+
+      robot.reverse_clockwise_rotation()
+      robot.reverse_clockwise_rotation()
+      robot.reverse_clockwise_rotation()
+
+      assert.equal(robot.orientation, 'up')
+
+    })
+
+    it('should remove 1 battery by rotation', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'left'
+
+      robot.reverse_clockwise_rotation()
+
+      assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - 1)
+
+    })
+
+    it('should unable rotate if energy < 1 and report by an OOE', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.battery = 0
+      robot.orientation = 'left'
+
+      robot.reverse_clockwise_rotation()
+      assert.equal(robot.orientation, 'left')
+      assert.equal(robot.round_movements.actions[0].action, 'OOE')
+    })
+
+    it('should update robot memory with orientation event', () => {
+      const map = { square_size: 5 }
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'left'
+
+      robot.reverse_clockwise_rotation()
+      assert.equal(robot.round_movements.actions[0].action, 'turn-left')
     })
   })
 
@@ -313,21 +441,20 @@ describe('map', () => {
       const field = game_services.generate_field()
       const map = new game_classes.Map(field)
       const robot = new game_classes.Robot('default', map)
+
       const address = { x: 0, y: 0 }
-      const index = map.get_index_by_address(address)
-      console.log(index)
+      const index = map.get_index_by_address(address.x, address.y)
+
       const excepted_value = {
         ground: map.layers.ground[index],
-        obstacle: map.layers.obstacles[index],
+        obstacles: map.layers.obstacles[index],
         addresses: map.layers.addresses[index]
       }
 
       robot.map.update_robot_memory(robot, [address])
-      console.log(excepted_value)
-      console.log(robot.memory_map[index])
 
       assert.equal(robot.memory_map[index].ground, excepted_value.ground)
-      assert.equal(robot.memory_map[index].obstacle, excepted_value.obstacle)
+      assert.equal(robot.memory_map[index].obstacles, excepted_value.obstacles)
       assert.equal(robot.memory_map[index].addresses, excepted_value.addresses)
     })
   })
