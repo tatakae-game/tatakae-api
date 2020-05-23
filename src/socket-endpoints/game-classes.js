@@ -52,92 +52,6 @@ class Robot {
   }
 
   /**
-   * Tiles checkers
-   */
-
-  return_last_available_tile(contested_tiles) {
-    let x = this.position.x
-    let y = this.position.y
-    for (const tile of contested_tiles) {
-      if (this.position.x !== tile.x) {
-        if (tile.x < this.field.field_size && tile.x >= 0) {
-          x = tile.x
-        }
-      } else if (this.position.y !== tile.y) {
-        if (tile.y < this.field.field_size && tile.y >= 0) {
-          y = tile.y
-        }
-      }
-    }
-
-    return { x, y }
-  }
-
-  get_contested_tiles(range, spread) {
-    const tiles = []
-    switch (this.orientation) {
-      case 'up':
-        for (let i = 0; i < range; i++) {
-          if (spread && i !== 0) {
-
-            for (let j = this.position.x - i; j <= this.position.x + i; j++) {
-              tiles.push({ x: j, y: this.position.y + i + 1 })
-            }
-          } else {
-            tiles.push({ x: this.position.x, y: this.position.y + i + 1 })
-          }
-        }
-
-        break
-
-      case 'down':
-
-        for (let i = 0; i < range; i++) {
-          if (spread && i !== 0) {
-
-            for (let j = this.position.x - i; j <= this.position.x + i; j++) {
-              tiles.push({ x: j, y: this.position.y - i - 1 })
-            }
-          } else {
-            tiles.push({ x: this.position.x, y: this.position.y - i - 1 })
-          }
-        }
-        break
-
-      case 'left':
-
-        for (let i = 0; i < range; i++) {
-          if (spread && i !== 0) {
-
-            for (let j = this.position.y - i; j <= this.position.y + i; j++) {
-              tiles.push({ x: this.position.x + i + 1, y: j })
-            }
-          } else {
-            tiles.push({ x: this.position.x - i - 1, y: this.position.y })
-          }
-        }
-        break
-
-      case 'right':
-
-        for (let i = 0; i < range; i++) {
-          if (spread && i !== 0) {
-
-            for (let j = this.position.y - i; j <= this.position.y + i; j++) {
-              tiles.push({ x: this.position.x - i - 1, y: j })
-            }
-          } else {
-            tiles.push({ x: this.position.x + i + 1, y: this.position.y })
-          }
-        }
-        break
-
-    }
-
-    return tiles
-  }
-
-  /**
    * Robot actions
    */
   clockwise_rotation() {
@@ -148,7 +62,6 @@ class Robot {
     if (this.battery >= 1) {
       this.battery -= 1
       const new_orientation_index = (Map.directions.indexOf(this.orientation) + 1) % Map.directions.length
-      console.log('index:' + new_orientation_index)
       this.orientation = Map.directions[new_orientation_index]
       this.round_movements.actions.push({
         action: 'turn-right',
@@ -214,16 +127,20 @@ class Robot {
       return
     }
 
-    const tiles_coordonates = this.get_contested_tiles(3, true)
+
     if (this.battery >= 1) {
+      const tiles_coordonates = this.map.check_tiles(this)
       this.battery -= 1
       const check_action = {
         action: 'check',
-        tiles_checked: this.convert_tiles_coordonates_to_tile_layers(tiles_coordonates),
+        tiles_checked: tiles_coordonates,
       }
-      this.update_robot_memory(check_action.tiles_checked)
+      this.map.update_robot_memory(this, tiles_coordonates)
 
       this.round_movements.actions.push(check_action)
+    } else {
+
+      robot.out_of_energy()
     }
   }
 
@@ -371,6 +288,106 @@ class Map {
       const index = this.get_index_by_address(tile_layers.addresses.x, tile_layers.addresses.y)
       robot.memory_map[index] = tile_layers
     }
+  }
+
+  check_tiles(robot) {
+    const x = robot.position.x
+    const y = robot.position.y
+    const tiles = []
+
+    switch (robot.orientation) {
+      case 'up':
+        let tile
+        for (let i = 0; i < 3; i++) {
+          if (i !== 0) {
+            for (let j = x - i; j <= x + i; j++) {
+              tile = ({ x: j, y: y + i + 1 })
+
+              if (this.is_inbound(tile.x, tile.y)) {
+                tiles.push(tile)
+              }
+            }
+          } else {
+            tile = ({ x, y: y + 1 })
+
+            if (this.is_inbound(tile.x, tile.y)) {
+              tiles.push(tile)
+            }
+          }
+
+        }
+
+        break
+
+      case 'down':
+
+        for (let i = 0; i < 3; i++) {
+          let tile
+          if (i !== 0) {
+
+            for (let j = x - i; j <= x + i; j++) {
+              tile = ({ x: j, y: y - i - 1 })
+
+              if (this.is_inbound(tile.x, tile.y)) {
+                tiles.push(tile)
+              }
+            }
+          } else {
+            tile = ({ x, y: y - i - 1 })
+
+            if (this.is_inbound(tile.x, tile.y)) {
+              tiles.push(tile)
+            }
+          }
+        }
+        break
+
+      case 'left':
+
+        for (let i = 0; i < 3; i++) {
+          let tile
+          if (i !== 0) {
+
+            for (let j = y - i; j <= y + i; j++) {
+              tile = ({ x: x + i + 1, y: j })
+              if (this.is_inbound(tile.x, tile.y)) {
+                tiles.push(tile)
+              }
+            }
+          } else {
+            tile = ({ x: x - i - 1, y })
+            if (this.is_inbound(tile.x, tile.y)) {
+              tiles.push(tile)
+            }
+          }
+        }
+        break
+
+      case 'right':
+
+        for (let i = 0; i < 3; i++) {
+          if (i !== 0) {
+
+            for (let j = y - i; j <= y + i; j++) {
+              tile = ({ x: x - i - 1, y: j })
+
+              if (this.is_inbound(tile.x, tile.y)) {
+                tiles.push(tile)
+              }
+            }
+          } else {
+            tile = ({ x: x + i + 1, y })
+
+            if (this.is_inbound(tile.x, tile.y)) {
+              tiles.push(tile)
+            }
+          }
+        }
+        break
+
+    }
+
+    return tiles
   }
 
 }

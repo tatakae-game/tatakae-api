@@ -132,7 +132,7 @@ describe('robot', () => {
       robot.walk(steps)
       let added_step = 1
 
-      for(const action of robot.round_movements.actions){
+      for (const action of robot.round_movements.actions) {
         assert.equal(action.action, 'walk')
         assert.equal(action.new_position.x, 0 + added_step++)
         assert.equal(action.new_position.y, 0)
@@ -309,8 +309,14 @@ describe('robot', () => {
 })
 
 describe('check()', () => {
-  it.skip('should update robot memory with cone of 9 tiles in front of him', () => {
+  it('should update robot memory with cone of 9 tiles in front of him', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
 
+    const robot = new game_classes.Robot('default', map)
+    robot.position = { x: 0, y: 0 }
+    robot.check()
+    console.log(robot.memory_map)
   })
 
   it.skip('should not update anything if some of the checked tiles are OOB', () => {
@@ -322,7 +328,7 @@ describe('check()', () => {
   })
 })
 
-describe('hit.skip()', () => {
+describe('hit()', () => {
   it.skip('can trigger only on robot battery > 2', () => {
 
   })
