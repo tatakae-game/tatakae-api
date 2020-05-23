@@ -11,7 +11,7 @@ class Robot {
   static models = {
     default: {
       hp: 50,
-      battery: 2,
+      battery: 10,
     },
   }
 
@@ -147,11 +147,15 @@ class Robot {
 
     if (this.battery >= 1) {
       this.battery -= 1
-      this.orientation = this.directions[(this.directions.indexOf(this.orientation) + 1) % this.directions.length]
+      const new_orientation_index = (Map.directions.indexOf(this.orientation) + 1) % Map.directions.length
+      console.log('index:' + new_orientation_index)
+      this.orientation = Map.directions[new_orientation_index]
       this.round_movements.actions.push({
-        action: 'turn',
+        action: 'turn-right',
         new_orientation: this.orientation,
       })
+    } else {
+      this.out_of_energy()
     }
   }
 
@@ -162,11 +166,14 @@ class Robot {
 
     if (this.battery >= 1) {
       this.battery -= 1
-      this.orientation = this.directions[(this.directions.indexOf(this.orientation) - 1 + this.directions.length) % this.directions.length]
+      const new_orientation_index = (Map.directions.indexOf(this.orientation) - 1 + Map.directions.length) % Map.directions.length
+      this.orientation = Map.directions[new_orientation_index]
       this.round_movements.actions.push({
-        action: 'turn',
+        action: 'turn-left',
         new_orientation: this.orientation,
       })
+    } else {
+      this.out_of_energy()
     }
   }
 
@@ -193,19 +200,11 @@ class Robot {
         }
 
         //update robot memory on bumped or crossed tiles
-        this.map.update_robot_memory(robot, [new_position])
+        this.map.update_robot_memory(this, [new_position])
 
         this.round_movements.actions.push(movement)
       } else {
-        this.isRunning = false
-      }
-    }
-  }
-
-  update_robot_memory(tiles_checked) {
-    for (const tile_layers of tiles_checked) {
-      if (tile_layers[0] !== 'limit') {
-        this.memory_map[this.convert_coordonates_to_array_address(tile_layers[2].x, tile_layers[2].y)] = tile_layers
+        this.out_of_energy()
       }
     }
   }
@@ -231,6 +230,11 @@ class Robot {
   pass() {
     this.isRunning = false
     this.round_movements.actions.push({ action: 'wait' })
+  }
+
+  out_of_energy() {
+    this.isRunning = false
+    this.round_movements.actions.push({ action: 'OOE' })
   }
 }
 
@@ -363,9 +367,9 @@ class Map {
 
   update_robot_memory(robot, tiles_addresses) {
     const tiles_layers = this.get_tiles_layers(tiles_addresses)
-    console.log(tiles_layers)
     for (const tile_layers of tiles_layers) {
-      robot.memory_map[this.get_index_by_address(tile_layers.addresses.x, tile_layers.addresses.y)] = tile_layers
+      const index = this.get_index_by_address(tile_layers.addresses.x, tile_layers.addresses.y)
+      robot.memory_map[index] = tile_layers
     }
   }
 
