@@ -104,12 +104,40 @@ describe('robot', () => {
       assert.equal(robot.round_movements.actions[0].event, 'bumped')
     })
 
-    it.skip('should update memory map on walked-on tiles, and collisioned tiles', () => {
+    it('should update memory map on walked-on tiles, and collisioned tiles', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'up'
+      robot.position = { x: 0, y: 0 }
+      const memory_index = map.get_index_by_address(robot.position.x, robot.position.y + 1)
+
+      robot.walk(1)
+      assert.equal(robot.memory_map[memory_index].ground, map.layers.ground[memory_index])
+      assert.equal(robot.memory_map[memory_index].obstacles, map.layers.obstacles[memory_index])
+      assert.equal(robot.memory_map[memory_index].addresses, map.layers.addresses[memory_index])
     })
 
-    it.skip('should update robot actions list', () => {
+    it('should update robot actions list on walk', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      const steps = 3
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
+      const robot = new game_classes.Robot('default', map)
+      robot.orientation = 'right'
+      robot.position = { x: 0, y: 0 }
+      robot.walk(steps)
+      let added_step = 1
+
+      for(const action of robot.round_movements.actions){
+        assert.equal(action.action, 'walk')
+        assert.equal(action.new_position.x, 0 + added_step++)
+        assert.equal(action.new_position.y, 0)
+
+      }
     })
   })
 
