@@ -314,7 +314,7 @@ describe('check()', () => {
     const map = new game_classes.Map(field)
 
     const robot = new game_classes.Robot('default', map)
-    robot.position = { x: 0, y: 0 }
+    robot.position = { x: 3, y: 3 }
     robot.check()
     console.log(robot.memory_map)
   })
