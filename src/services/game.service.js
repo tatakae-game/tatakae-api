@@ -137,7 +137,7 @@ const resetRobots = (robot, opponent_robot) => {
 }
 
 const randomize_initial_robot_position = (robot, enemy_robot, map) => {
-
+  
 }
 
 
