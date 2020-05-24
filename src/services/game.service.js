@@ -50,11 +50,18 @@ function return_available_position_on_edge(edge, map) {
   }
 }
 
-const instantiate_empty_fields = (size) => {
+const instantiate_empty_fields = (size, type) => {
   const layers = {}
-  for (const field in game_constants.LAYERS) {
+  for (const field of game_constants.LAYERS) {
     layers[field] = Array(size * size).fill(null)
   }
+
+  layers.ground = fill_ground(type, size)
+  layers.obstacles = generate_obstacle(size)
+  layers.addresses = fill_addresses(size)
+
+
+  return layers
 }
 
 const generate_field = () => {
@@ -62,19 +69,7 @@ const generate_field = () => {
   const field_type = game_constants.SELECTABLE_TILES[Math.floor(Math.random() * game_constants.SELECTABLE_TILES.length)]
   const field_size = game_constants.SELECTABLE_SIZE[Math.floor(Math.random() * game_constants.SELECTABLE_SIZE.length)]
 
-  const fields = instantiate_empty_fields(field_size)
-
-  return [{
-    tiles: fill_ground(field_type, field_size)
-  },
-  {
-    tiles: generate_obstacle(field_size)
-  },
-  {
-    tiles: fill_addresses(field_size)
-  }
-  ]
-
+  return instantiate_empty_fields(field_size, field_type)
 }
 
 
@@ -137,7 +132,7 @@ const resetRobots = (robot, opponent_robot) => {
 }
 
 const randomize_initial_robot_position = (robot, enemy_robot, map) => {
-  
+
 }
 
 
