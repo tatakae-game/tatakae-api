@@ -12,7 +12,7 @@ import * as users from '../models/users'
 import * as rooms from '../models/rooms'
 
 
-router.get('/support/tickets', guard({ auth: constants.AUTH }), async (req, res) => {
+router.get('/support/user/tickets', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const user = await users.find_by_token(req.token)
 
@@ -34,6 +34,57 @@ router.get('/support/tickets', guard({ auth: constants.AUTH }), async (req, res)
       })
   }
 })
+
+router.get('/support/tickets', guard({ auth: constants.AUTH }), async (req, res) => {
+  try {
+    const result = await rooms.model.find({ is_ticket: true, }).populate('users', 'messages')
+
+    res.send({
+      success: true,
+      rooms: result.map(rooms.sanitize),
+    })
+  } catch {
+    res.status(500).json({ success: false, errors: ['An error occured.'], })
+  }
+})
+
+router.get('/support/admin/tickets/opened',
+  guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_DASHBOARD] }),
+  async (req, res) => {
+    try {
+      const result = await rooms.model.find({
+        is_ticket: true,
+        status: { $in: ['opened', 'in progress'] },
+      }).populate('users', 'messages')
+
+      res.json({ success: true, tickets: result})
+
+    } catch (e) {
+      res.status(500).json({
+        success: false,
+        errors: [e.message],
+      })
+    }
+  })
+
+router.get('/support/admin/tickets/closed',
+  guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_DASHBOARD] }),
+  async (req, res) => {
+    try {
+      const result = await rooms.model.find({
+        is_ticket: true,
+        status: 'closed',
+      }).populate('users', 'messages')
+
+      res.json({ success: true, tickets: result})
+
+    } catch (e) {
+      res.status(500).json({
+        success: false,
+        errors: [e.message],
+      })
+    }
+  })
 
 router.put(`/support/tickets/:id/close`, guard({ auth: constants.AUTH }), async (req, res) => {
   try {
@@ -60,7 +111,9 @@ const assigned_to_schema = Joi.object().keys({
   user: Joi.string().alphanum().min(24).max(24).required(),
 })
 
-router.put(`/support/tickets/:id/assign`, guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_ADMIN]}), schema({ body: assigned_to_schema }), async (req, res) => {
+router.put(`/support/tickets/:id/assign`,
+  guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_DASHBOARD] }),
+  schema({ body: assigned_to_schema }), async (req, res) => {
   try {
     const { user } = req.body || {}
 
