@@ -65,7 +65,7 @@ router.get('/users/search', guard({ auth: constants.AUTH }), async (req, res) =>
 
 router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
-    const user = await users.model.findById(req.params.id).lean()
+    const user = await users.model.findById(req.params.id).populate('groups').lean()
 
     if (!user) {
       return res.status(404).send(ErrorsGenerator.gen([`This user doesn't exist.`]))
