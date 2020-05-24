@@ -40,8 +40,9 @@ export function sanitize(user) {
     id: user._id,
     username: user.username,
     email: user.email,
+    groups: user.groups,
     score: user.score,
-    registred: user.created,
+    registered: user.created,
     robot: user.robot,
   }
 }
