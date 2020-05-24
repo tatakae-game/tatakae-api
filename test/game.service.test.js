@@ -5,7 +5,7 @@ import * as game_service from '../src/services/game.service'
 describe('generate_field()', () => {
   it('should return a map of 3 layers', () => {
     const field = game_service.generate_field()
-    assert.equal(field.length, 3)
+    assert.equal(Object.keys(field).length, game_constants.LAYERS.length)
   })
 })
 

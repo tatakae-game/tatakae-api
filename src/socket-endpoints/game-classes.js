@@ -166,13 +166,9 @@ class Map {
    */
 
   constructor(layers) {
-    this.layers = {
-      ground: layers[0].tiles,
-      obstacles: layers[1].tiles,
-      addresses: layers[2].tiles,
-    }
+    this.layers = layers
 
-    this.square_size = Math.sqrt(layers[0].tiles.length)
+    this.square_size = Math.sqrt(this.layers.ground.length)
 
   }
 
@@ -184,9 +180,8 @@ class Map {
     }
 
     this.robot = robot
-    for (const enemy_robot of enemy_robots) {
-      robot.push(enemy_robot)
-    }
+
+    set_enemy_robots(enemy_robots)
 
     return map
   }
@@ -214,6 +209,12 @@ class Map {
     }
 
     return tiles_containts
+  }
+
+  set_enemy_robots(enemy_robots) {
+    for (const robot of enemy_robots) {
+      this.layers.opponent[this.get_index_by_address(robot.position.x, robot.position.y)] = robot
+    }
   }
 
   /**
@@ -266,13 +267,7 @@ class Map {
   * @param {x: number, y: number} tiles_address
   */
   get_enemy_on_tile(tile_address) {
-    for (const enemy_robot of this.enemy_robots) {
-      if (enemy_robot.position.x === tile_address.x && enemy_robot.position.y === tile_address.y) {
-        return enemy_robot
-      }
-    }
-
-    return null
+    return this.layers.opponent[this.get_index_by_address(tile_address.x, tile_address.y)]
   }
 
   is_inbound(x, y) {

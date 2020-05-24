@@ -314,9 +314,9 @@ describe('check()', () => {
     const map = new game_classes.Map(field)
 
     const robot = new game_classes.Robot('default', map)
-    robot.position = { x: 3, y: 3 }
+    robot.orientation = 'right'
+    robot.position = { x: 0, y: 0 }
     robot.check()
-    console.log(robot.memory_map)
   })
 
   it.skip('should not update anything if some of the checked tiles are OOB', () => {
@@ -430,7 +430,7 @@ describe('map', () => {
 
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
       map.layers.ground = Array(map.square_size * map.square_size).fill('water')
-      map.enemy_robots.push(robot)
+      map.set_enemy_robots([robot])
 
       const test = map.has_obstacle({ x: 0, y: 3, })
 
@@ -445,7 +445,7 @@ describe('map', () => {
 
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
       map.layers.ground = Array(map.square_size * map.square_size).fill('water')
-      map.enemy_robots.push(robot)
+      map.set_enemy_robots([robot])
 
       const test = map.has_obstacle({ x: 0, y: 4, })
 
@@ -499,7 +499,7 @@ describe('map', () => {
       const map = new game_classes.Map(field)
 
       const robot = { position: { x: 0, y: 2 } }
-      map.enemy_robots.push(robot)
+      map.set_enemy_robots([robot])
 
       assert.equal(robot, map.get_enemy_on_tile(robot.position))
     })
@@ -509,10 +509,26 @@ describe('map', () => {
       const map = new game_classes.Map(field)
 
       const robot = { position: { x: 0, y: 2 } }
-      map.enemy_robots.push(robot)
+      map.set_enemy_robots([robot])
 
       assert.equal(null, map.get_enemy_on_tile({ x: 0, y: 3 }))
 
+    })
+  })
+
+  describe("set_enemy_robots()", () => {
+    it("should position robot on according tile on opponent layer", () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+
+      const robot = { position: { x: 0, y: 2 } }
+      const robot1 = { position: { x: 0, y: 3 } }
+      const robot2 = { position: { x: 0, y: 4 } }
+      map.set_enemy_robots([robot, robot1, robot2])
+
+      assert.equal(robot, map.layers.opponent[map.get_index_by_address(robot.position.x, robot.position.y)])
+      assert.equal(robot1, map.layers.opponent[map.get_index_by_address(robot1.position.x, robot1.position.y)])
+      assert.equal(robot2, map.layers.opponent[map.get_index_by_address(robot2.position.x, robot2.position.y)])
     })
   })
 })  
