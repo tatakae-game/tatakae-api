@@ -349,7 +349,7 @@ class Map {
           if (i !== 0) {
 
             for (let j = y - i; j <= y + i; j++) {
-              tile = ({ x: x + i + 1, y: j })
+              tile = ({ x: x - i - 1, y: j })
               if (this.is_inbound(tile.x, tile.y)) {
                 tiles.push(tile)
               }
@@ -369,7 +369,7 @@ class Map {
           if (i !== 0) {
 
             for (let j = y - i; j <= y + i; j++) {
-              tile = ({ x: x - i - 1, y: j })
+              tile = ({ x: x + i + 1, y: j })
 
               if (this.is_inbound(tile.x, tile.y)) {
                 tiles.push(tile)
