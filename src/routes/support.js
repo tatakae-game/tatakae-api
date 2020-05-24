@@ -41,7 +41,7 @@ router.get('/support/tickets', guard({ auth: constants.AUTH }), async (req, res)
 
     res.send({
       success: true,
-      rooms: result.map(rooms.sanitize),
+      rooms: result,
     })
   } catch {
     res.status(500).json({ success: false, errors: ['An error occured.'], })
