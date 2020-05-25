@@ -3,6 +3,9 @@ import { strict as assert, AssertionError } from 'assert'
 import game_classes from '../src/socket-endpoints/game-classes'
 import * as game_services from '../src/services/game.service'
 
+
+const user_ids = ['1203ascasc123', '1203ascasc153', '1203ascasc193', '1203ascasc1123']
+
 describe('robot', () => {
 
   describe('initialization', () => {
@@ -10,7 +13,7 @@ describe('robot', () => {
     describe('model', () => {
       it('should initialize robot depending of passed model', () => {
         const map = { square_size: 5 }
-        const robot = new game_classes.Robot('default', map)
+        const robot = new game_classes.Robot('default', map, user_ids[0])
 
         assert.equal(robot.hp, game_classes.Robot.models[robot.model].hp)
         assert.equal(robot.model, 'default')
@@ -18,7 +21,7 @@ describe('robot', () => {
 
       it('should initialize robot as default if model doesnt exist', () => {
         const map = { square_size: 5 }
-        const robot = new game_classes.Robot('cat', map)
+        const robot = new game_classes.Robot('cat', map, user_ids[0])
 
         assert.equal(robot.model, 'default')
         assert.equal(robot.hp, game_classes.Robot.models[robot.model].hp)
@@ -26,10 +29,23 @@ describe('robot', () => {
 
       it('should initialize robot memory map filled with undiscovered tiles', () => {
         const map = { square_size: 5 }
-        const robot = new game_classes.Robot('default', map)
+        const robot = new game_classes.Robot('default', map, user_ids[0])
 
         for (const undiscovered_map of robot.memory_map) {
           assert.equal(undiscovered_map, 'not_discovered')
+        }
+      })
+    })
+
+    describe("from_instance()", () => {
+      it("should return exact copy of passed robot", () => {
+        const field = game_services.generate_field()
+        const map = new game_classes.Map(field)
+        const robot = new game_classes.Robot('default', map, user_ids[0])
+        const copy = game_classes.Robot.from_instance(robot, map)
+
+        for (const properties in robot) {
+          assert.equal(robot[properties], copy[properties])
         }
       })
     })
@@ -52,7 +68,7 @@ describe('robot', () => {
       const map = new game_classes.Map(field)
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.battery = 0
       robot.position = { x: 0, y: 0 }
       robot.walk(1)
@@ -68,7 +84,7 @@ describe('robot', () => {
       const steps = 3
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.position = { x: 0, y: 0 }
       robot.walk(steps)
 
@@ -80,7 +96,7 @@ describe('robot', () => {
       const map = new game_classes.Map(field)
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.battery = 6
       robot.position = { x: 0, y: 0 }
       robot.walk(3)
@@ -94,7 +110,7 @@ describe('robot', () => {
       const map = new game_classes.Map(field)
       map.layers.obstacles = Array(map.square_size * map.square_size).fill('ruins')
 
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.battery = 6
       robot.position = { x: 0, y: 0 }
       robot.walk(1)
@@ -109,7 +125,7 @@ describe('robot', () => {
       const map = new game_classes.Map(field)
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'up'
       robot.position = { x: 0, y: 0 }
       const memory_index = map.get_index_by_address(robot.position.x, robot.position.y + 1)
@@ -126,7 +142,7 @@ describe('robot', () => {
       const steps = 3
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'right'
       robot.position = { x: 0, y: 0 }
       robot.walk(steps)
@@ -144,7 +160,7 @@ describe('robot', () => {
   describe('clockwise_rotate()', () => {
     it('should update robot orientation with right next orientation', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'up'
 
       robot.clockwise_rotation()
@@ -153,7 +169,7 @@ describe('robot', () => {
 
     it('should update robot orientation with up if orientation before rotation is left', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
       robot.clockwise_rotation()
@@ -162,7 +178,7 @@ describe('robot', () => {
 
     it('should assume multiple rotation', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
       robot.clockwise_rotation()
@@ -175,7 +191,7 @@ describe('robot', () => {
 
     it('should remove 1 battery by rotation', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
       robot.clockwise_rotation()
@@ -186,7 +202,7 @@ describe('robot', () => {
 
     it('should unable rotate if energy < 1 and report by an OOE', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.battery = 0
       robot.orientation = 'left'
 
@@ -197,7 +213,7 @@ describe('robot', () => {
 
     it('should update robot memory with orientation event', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
       robot.clockwise_rotation()
@@ -208,7 +224,7 @@ describe('robot', () => {
   describe('reverse_clockwise_rotation()', () => {
     it('should update robot orientation with right next orientation', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'down'
 
       robot.reverse_clockwise_rotation()
@@ -217,7 +233,7 @@ describe('robot', () => {
 
     it('should update robot orientation with left if orientation before rotation is up', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'up'
 
       robot.reverse_clockwise_rotation()
@@ -226,7 +242,7 @@ describe('robot', () => {
 
     it('should assume multiple rotation', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
       robot.reverse_clockwise_rotation()
@@ -239,7 +255,7 @@ describe('robot', () => {
 
     it('should remove 1 battery by rotation', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
       robot.reverse_clockwise_rotation()
@@ -250,7 +266,7 @@ describe('robot', () => {
 
     it('should unable rotate if energy < 1 and report by an OOE', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.battery = 0
       robot.orientation = 'left'
 
@@ -261,7 +277,7 @@ describe('robot', () => {
 
     it('should update robot memory with orientation event', () => {
       const map = { square_size: 5 }
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
       robot.reverse_clockwise_rotation()
@@ -313,10 +329,11 @@ describe('check()', () => {
     const field = game_services.generate_field()
     const map = new game_classes.Map(field)
 
-    const robot = new game_classes.Robot('default', map)
-    robot.orientation = 'right'
-    robot.position = { x: 0, y: 0 }
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    robot.orientation = 'up'
+    robot.position = { x: 3, y: 3 }
     robot.check()
+    console.log(robot.memory_map)
   })
 
   it.skip('should not update anything if some of the checked tiles are OOB', () => {
@@ -329,16 +346,65 @@ describe('check()', () => {
 })
 
 describe('hit()', () => {
-  it.skip('can trigger only on robot battery > 2', () => {
+  it('can trigger only on robot battery > 2', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+    robot.battery = 1
+
+    robot.hit()
+
+    assert.equal(robot.round_movements.actions[0].action, 'OOE')
 
   })
 
-  it.skip('should damage opponent robot by 3 if opponent is on a tile in front of robot', () => {
+  it('remove 2 battery on trigger', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+
+    robot.hit()
+
+    assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - 2)
 
   })
 
-  it.skip('should not damage opponent when opponent are next attacking robot but not in front', () => {
+  it('should damage opponent robot by robot.damage if opponent is on a tile in front of robot', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+    robot.position = { x: 3, y: 3 }
+    robot.orientation = 'up'
 
+    const opponent = new game_classes.Robot('default', map, user_ids[0])
+    const initial_hp = opponent.hp
+    opponent.position = { x: 3, y: 4 }
+
+    map.set_enemy_robots([opponent])
+
+    robot.hit()
+
+    assert.equal(opponent.hp, initial_hp - game_classes.Robot.models[robot.model].damage)
+  })
+
+  it('should destroy obstacle if obstacle is in range', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+
+    robot.position = { x: 3, y: 3 }
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+    const obstacle_index = map.get_index_by_address(robot.position.x, robot.position.y + 1)
+    robot.orientation = 'up'
+
+    map.layers.obstacles[obstacle_index] = 'mountain'
+
+    assert.equal(map.has_obstacle({ x: robot.position.x, y: robot.position.y + 1 }), true)
+    robot.hit()
+    assert.equal(map.has_obstacle({ x: robot.position.x, y: robot.position.y + 1 }), false)
   })
 
   it.skip('should update robot actions list', () => {
@@ -368,13 +434,96 @@ describe('eat()', () => {
   })
 })
 
-describe('die()', () => {
-  it.skip('should lay scrubs on the ground', () => {
+describe('get_hit()', () => {
+  it('should make robot lose hp equals to opponent robot attack', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+    const damage = game_classes.Robot.models.default.damage
+    map.set_enemy_robots([robot])
 
+    const initial_hp = game_classes.Robot.models[robot.model].hp
+    robot.get_hit(damage, map)
+    assert.equal(robot.hp, initial_hp - damage)
   })
 
-  it.skip('should update robot actions list', () => {
+  it('should return hit action if robot is still alive', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+    const damage = game_classes.Robot.models.default.damage
+    map.set_enemy_robots([robot])
 
+    const result = robot.get_hit(damage, map)
+
+    assert.equal(result.action, 'get-hit')
+    assert.equal(result.damage, damage)
+    assert.equal(result.robot_id, robot.robot_id)
+  })
+
+  it('should return die action if robot is dead on hit', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+    const damage = game_classes.Robot.models.default.damage
+    map.set_enemy_robots([robot])
+    robot.hp = 10
+
+    const result = robot.get_hit(damage, map)
+
+    assert.equal(result.action, 'die')
+    assert.equal(result.robot_id, robot.robot_id)
+  })
+})
+
+describe('die()', () => {
+  it('should lay scraps on the ground', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    robot.position = { x: 0, y: 3, }
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+
+    map.set_enemy_robots([robot])
+
+    robot.die(map)
+
+    const result = map.layers.items[index][0]
+    assert.equal("scraps", result)
+  })
+
+  it('should remove robot from opponent layer', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    robot.position = { x: 0, y: 3, }
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+
+    map.set_enemy_robots([robot])
+
+    assert.equal(map.layers.opponent[index], robot)
+    robot.die(map)
+    assert.equal(map.layers.opponent[index], null)
+  })
+
+  it('should return action properly shaped for death', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    robot.position = { x: 0, y: 3, }
+    const index = map.get_index_by_address(robot.position.x, robot.position.y)
+
+    map.set_enemy_robots([robot])
+    const action = robot.die(map)
+
+    assert.equal(action.action, "die")
+    assert.equal(action.robot_id, robot.robot_id)
+    assert.equal(action.events[0].event, 'lay-scraps')
+    assert.equal(action.events[0].address.x, robot.position.x)
+    assert.equal(action.events[0].address.y, robot.position.y)
   })
 })
 
@@ -425,7 +574,7 @@ describe('map', () => {
     it('should return true if any a robot is present on the tile', () => {
       const field = game_services.generate_field()
       const map = new game_classes.Map(field)
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.position = { x: 0, y: 3, }
 
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
@@ -440,7 +589,7 @@ describe('map', () => {
     it('should return false if nor robot nor obstacle are present on the tile', () => {
       const field = game_services.generate_field()
       const map = new game_classes.Map(field)
-      const robot = new game_classes.Robot('default', map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.position = { x: 0, y: 3, }
 
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
@@ -474,7 +623,8 @@ describe('map', () => {
     it('should update all tiles for the passed robot', () => {
       const field = game_services.generate_field()
       const map = new game_classes.Map(field)
-      const robot = new game_classes.Robot('default', map)
+      console.log(map)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
 
       const address = { x: 0, y: 0 }
       const index = map.get_index_by_address(address.x, address.y)
@@ -529,6 +679,47 @@ describe('map', () => {
       assert.equal(robot, map.layers.opponent[map.get_index_by_address(robot.position.x, robot.position.y)])
       assert.equal(robot1, map.layers.opponent[map.get_index_by_address(robot1.position.x, robot1.position.y)])
       assert.equal(robot2, map.layers.opponent[map.get_index_by_address(robot2.position.x, robot2.position.y)])
+    })
+  })
+
+  describe("get_hitted_tiles()", () => {
+    it("should return the 3 cases in font of the robot, depending of its orientation", () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+
+      robot.position = { x: 3, y: 3 }
+      robot.orientation = 'down'
+
+      const tiles = map.get_hitted_tiles(robot)
+
+      assert.equal(tiles[0].y, robot.position.y - 1)
+      assert.equal(tiles[0].x, robot.position.x - 1)
+      assert.equal(tiles[1].x, robot.position.x)
+      assert.equal(tiles[2].x, robot.position.x + 1)
+
+    })
+  })
+
+  describe("get_jumped_tiles()", () => {
+    it("should return the 2 cases in line in front of the robot, and the robot position, depending of its orientation", () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+
+      robot.position = { x: 3, y: 3 }
+      robot.orientation = 'down'
+
+      const tiles = map.get_jumped_tiles(robot)
+
+      assert.equal(tiles[0].x, robot.position.x)
+      assert.equal(tiles[0].y, robot.position.y - 2)
+      assert.equal(tiles[1].y, robot.position.y - 1)
+      assert.equal(tiles[2].y, robot.position.y)
+
+
     })
   })
 })  

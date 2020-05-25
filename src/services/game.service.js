@@ -4,6 +4,10 @@ function fill_ground(type, size) {
   return Array(size * size).fill(type)
 }
 
+function fill_items(size) {
+  return Array(size * size).fill([])
+}
+
 function generate_obstacle(size) {
   let obstacle_counter = 0
   const tiles = []
@@ -59,6 +63,7 @@ const instantiate_empty_fields = (size, type) => {
   layers.ground = fill_ground(type, size)
   layers.obstacles = generate_obstacle(size)
   layers.addresses = fill_addresses(size)
+  layers.items = fill_items(size)
 
 
   return layers
