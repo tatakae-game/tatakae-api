@@ -228,13 +228,13 @@ class Robot {
       return
     }
 
-    if (this.battery < 3) {
-      this.battery -= 3
+    if (this.battery >= 4) {
+      this.battery -= 4
       const tiles_jumped = this.map.get_jumped_tiles(this)
-      const actions = this.map.resolve_jump(this)
-
-
-
+      const actions = this.map.resolve_jump(tiles_jumped, this)
+      for (const action of actions) {
+        this.round_movements.actions.push(action)
+      }
 
     } else {
       this.out_of_energy()
@@ -246,8 +246,6 @@ class Robot {
 class Map {
 
   static directions = ['up', 'right', 'down', 'left']
-
-  enemy_robots = []
 
   /**
    * data instantiation
@@ -269,7 +267,7 @@ class Map {
 
     this.robot = robot
 
-    set_enemy_robots(enemy_robots)
+    this.set_enemy_robots(enemy_robots)
 
     return map
   }
@@ -590,6 +588,63 @@ class Map {
         break
     }
     return tiles
+  }
+
+  /**
+   * 
+   * @param {{x: number, y: number}[]} tiles_jumped 
+   * @param {Robot} robot 
+   */
+  resolve_jump(tiles_jumped, robot) {
+
+    const max_range_tile = tiles_jumped[0]
+    const middle_tile = tiles_jumped[1]
+    const actions = []
+
+    const action = {
+      action: 'jump',
+      robot_id: robot.robot_id,
+      events: [],
+    }
+
+    robot.map.update_robot_memory(robot, tiles_jumped)
+
+    if (!this.has_obstacle(max_range_tile)) {
+      robot.position = max_range_tile
+      action.new_position = max_range_tile
+      actions.push(action)
+
+      return actions
+
+    } else if (this.get_enemy_on_tile(max_range_tile)) {
+      const opponent_action = this.get_enemy_on_tile(max_range_tile).get_hit(15, this)
+      action.events.push({ event: 'bumped' })
+
+      actions.push(action)
+      actions.push(opponent_action)
+
+    } else {
+
+      action.events.push({
+        event: "destroy-" + this.layers.obstacles[this.get_index_by_address(max_range_tile.x, max_range_tile.y)],
+        address: max_range_tile,
+      })
+
+      actions.push(action)
+
+      this.layers.obstacles[this.get_index_by_address(max_range_tile.x, max_range_tile.y)] = null
+    }
+
+
+    if (this.has_obstacle(middle_tile)) {
+      actions[0].new_position = robot.position
+    } else {
+      actions[0].new_position = middle_tile
+      robot.position = middle_tile
+    }
+
+
+    return actions
   }
 
 

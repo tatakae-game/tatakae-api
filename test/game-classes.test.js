@@ -286,40 +286,142 @@ describe('robot', () => {
   })
 
   describe('jump()', () => {
-    it.skip('should replace robot 2 tiles in front of him', () => {
+    it('should replace robot 2 tiles in front of him', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      robot.orientation = 'right'
+      robot.position = { x: 0, y: 0 }
+      const original_position = robot.position
+      robot.jump()
+
+      assert.equal(robot.position.x, original_position.x + 2)
+      assert.equal(robot.position.y, original_position.y)
+    })
+
+    it('should not jump if energy < 4', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      robot.orientation = 'right'
+      robot.position = { x: 0, y: 0 }
+      robot.battery = 3
+
+      robot.jump()
+      assert.equal(robot.position.x, 0)
+      assert.equal(robot.position.y, 0)
+    })
+
+    it('should discover all jumped tiles', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      robot.orientation = 'right'
+      robot.position = { x: 0, y: 0 }
+      const original_position = robot.position
+      robot.jump()
+
+      const map_layers1 = map.get_tiles_layers([{ x: original_position.x + 1, y: original_position.y }])[0]
+      const map_layers2 = map.get_tiles_layers([{ x: original_position.x + 2, y: original_position.y }])[0]
+
+      for (const layer in map_layers1) {
+        assert.equal(map_layers1[layer], robot.memory_map[robot.map.get_index_by_address(original_position.x + 1, original_position.y)][layer])
+      }
+
+      for (const layer in map_layers2) {
+        assert.equal(map_layers2[layer], robot.memory_map[robot.map.get_index_by_address(original_position.x + 2, original_position.y)][layer])
+      }
 
     })
 
-    it.skip('should ignore jumped tile type, whatever it contains, and not discover it', () => {
+    it('should bump on tile if it contains obstacle and destroy it, and report it', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+      map.layers.obstacles[map.get_index_by_address(2, 0)] = "mountain"
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      robot.orientation = 'right'
+      robot.position = { x: 0, y: 0 }
+
+      assert.equal(map.has_obstacle({ x: 2, y: 0 }), true)
+      robot.jump()
+      assert.equal(map.has_obstacle({ x: 2, y: 0 }), false)
+    })
+
+    it('should bump on wall if jump is going out of bound', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+      map.layers.obstacles[map.get_index_by_address(2, 0)] = "mountain"
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      robot.orientation = 'left'
+      robot.position = { x: 0, y: 0 }
+
+      robot.jump()
+      assert.equal(robot.position.x, 0)
+      assert.equal(robot.position.y, 0)
 
     })
 
-    it.skip('should bump on tile if it contains obstacle and destroy it', () => {
+    it('should bump on adversary and hurt him for 15hp', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      const opponent = new game_classes.Robot('default', map, user_ids[0])
+      opponent.position = { x: 2, y: 0 }
+      map.set_enemy_robots([opponent])
+
+      robot.orientation = 'right'
+      robot.position = { x: 0, y: 0 }
+
+      robot.jump()
+      assert.equal(opponent.hp, game_classes.Robot.models[opponent.model].hp - 15)
+      assert.equal(robot.position.x, 1)
+      assert.equal(robot.position.y, 0)
     })
 
-    it.skip('should bump on wall if jump is going out of bound', () => {
+    it('should place robot on middle tile on bumping', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+      map.layers.obstacles[map.get_index_by_address(2, 0)] = "mountain"
 
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      robot.orientation = 'right'
+      robot.position = { x: 0, y: 0 }
+
+      robot.jump()
+      assert.equal(robot.position.x, 1)
+      assert.equal(robot.position.y, 0)
     })
 
-    it.skip('should bump on adversary and hurt him for 5hp', () => {
+    it('should place robot on original tile on bumping if middle tile has obstacle', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+      map.layers.obstacles[map.get_index_by_address(2, 0)] = "mountain"
+      map.layers.obstacles[map.get_index_by_address(1, 0)] = "mountain"
 
-    })
 
-    it.skip('should place robot on middle tile on bumping', () => {
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      robot.orientation = 'right'
+      robot.position = { x: 0, y: 0 }
 
-    })
-
-    it.skip('should place robot on original tile on bumping if middle tile has obstacle', () => {
-
-    })
-
-    it.skip('should remove 1hp to robot on bumping', () => {
-
-    })
-
-    it.skip('should update robot actions list on every cases', () => {
-
+      robot.jump()
+      assert.equal(robot.position.x, 0)
+      assert.equal(robot.position.y, 0)
     })
   })
 })
@@ -333,7 +435,6 @@ describe('check()', () => {
     robot.orientation = 'up'
     robot.position = { x: 3, y: 3 }
     robot.check()
-    console.log(robot.memory_map)
   })
 
   it.skip('should not update anything if some of the checked tiles are OOB', () => {
@@ -623,7 +724,6 @@ describe('map', () => {
     it('should update all tiles for the passed robot', () => {
       const field = game_services.generate_field()
       const map = new game_classes.Map(field)
-      console.log(map)
       const robot = new game_classes.Robot('default', map, user_ids[0])
 
       const address = { x: 0, y: 0 }
