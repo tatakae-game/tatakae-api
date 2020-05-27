@@ -5,6 +5,7 @@ import * as game_services from '../src/services/game.service'
 
 
 const user_ids = ['1203ascasc123', '1203ascasc153', '1203ascasc193', '1203ascasc1123']
+const default_costs = game_classes.Robot.models.default.moove_costs
 
 describe('robot', () => {
 
@@ -88,7 +89,7 @@ describe('robot', () => {
       robot.position = { x: 0, y: 0 }
       robot.walk(steps)
 
-      assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - (steps * 2))
+      assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - (steps * default_costs.WALK))
     })
 
     it('should move robot n-distance tiles in front of him', () => {
@@ -117,7 +118,7 @@ describe('robot', () => {
 
       assert.equal(robot.position.x, 0)
       assert.equal(robot.position.y, 0)
-      assert.equal(robot.round_movements.actions[0].event, 'bumped')
+      assert.equal(robot.round_movements.actions[0].events[0].name, 'bumped')
     })
 
     it('should update memory map on walked-on tiles, and collisioned tiles', () => {
@@ -149,7 +150,7 @@ describe('robot', () => {
       let added_step = 1
 
       for (const action of robot.round_movements.actions) {
-        assert.equal(action.action, 'walk')
+        assert.equal(action.name, 'walk')
         assert.equal(action.new_position.x, 0 + added_step++)
         assert.equal(action.new_position.y, 0)
 
@@ -208,7 +209,7 @@ describe('robot', () => {
 
       robot.clockwise_rotation()
       assert.equal(robot.orientation, 'left')
-      assert.equal(robot.round_movements.actions[0].action, 'OOE')
+      assert.equal(robot.round_movements.actions[0].name, 'OOE')
     })
 
     it('should update robot memory with orientation event', () => {
@@ -217,7 +218,7 @@ describe('robot', () => {
       robot.orientation = 'left'
 
       robot.clockwise_rotation()
-      assert.equal(robot.round_movements.actions[0].action, 'turn-right')
+      assert.equal(robot.round_movements.actions[0].name, 'turn-right')
     })
   })
 
@@ -272,7 +273,7 @@ describe('robot', () => {
 
       robot.reverse_clockwise_rotation()
       assert.equal(robot.orientation, 'left')
-      assert.equal(robot.round_movements.actions[0].action, 'OOE')
+      assert.equal(robot.round_movements.actions[0].name, 'OOE')
     })
 
     it('should update robot memory with orientation event', () => {
@@ -281,7 +282,7 @@ describe('robot', () => {
       robot.orientation = 'left'
 
       robot.reverse_clockwise_rotation()
-      assert.equal(robot.round_movements.actions[0].action, 'turn-left')
+      assert.equal(robot.round_movements.actions[0].name, 'turn-left')
     })
   })
 
@@ -456,7 +457,7 @@ describe('hit()', () => {
 
     robot.hit()
 
-    assert.equal(robot.round_movements.actions[0].action, 'OOE')
+    assert.equal(robot.round_movements.actions[0].name, 'OOE')
 
   })
 
@@ -559,7 +560,7 @@ describe('get_hit()', () => {
 
     const result = robot.get_hit(damage, map)
 
-    assert.equal(result.action, 'get-hit')
+    assert.equal(result.name, 'get-hit')
     assert.equal(result.damage, damage)
     assert.equal(result.robot_id, robot.robot_id)
   })
@@ -575,7 +576,7 @@ describe('get_hit()', () => {
 
     const result = robot.get_hit(damage, map)
 
-    assert.equal(result.action, 'die')
+    assert.equal(result.name, 'die')
     assert.equal(result.robot_id, robot.robot_id)
   })
 })
@@ -620,7 +621,7 @@ describe('die()', () => {
     map.set_enemy_robots([robot])
     const action = robot.die(map)
 
-    assert.equal(action.action, "die")
+    assert.equal(action.name, "die")
     assert.equal(action.robot_id, robot.robot_id)
     assert.equal(action.events[0].event, 'lay-scraps')
     assert.equal(action.events[0].address.x, robot.position.x)

@@ -1,18 +1,20 @@
 class Robot {
 
-  onTest = false
-
-  class_tests = {
-    actions: [],
-  }
-
   isRunning = true
+  status = 'alive'
 
   static models = {
     default: {
       hp: 50,
       battery: 10,
       damage: 10,
+      moove_costs: {
+        WALK: 1,
+        JUMP: 4,
+        HIT: 2,
+        CHECK: 1,
+        ROTATE: 1,
+      }
     },
   }
 
@@ -61,12 +63,14 @@ class Robot {
       return
     }
 
-    if (this.battery >= 1) {
-      this.battery -= 1
+    const cost = Robot.models[this.model].moove_costs.ROTATE
+
+    if (this.battery >= cost) {
+      this.battery -= cost
       const new_orientation_index = (Map.directions.indexOf(this.orientation) + 1) % Map.directions.length
       this.orientation = Map.directions[new_orientation_index]
       this.round_movements.actions.push({
-        action: 'turn-right',
+        name: 'turn-right',
         new_orientation: this.orientation,
         robot_id: this.robot_id,
       })
@@ -80,12 +84,14 @@ class Robot {
       return
     }
 
-    if (this.battery >= 1) {
-      this.battery -= 1
+    const cost = Robot.models[this.model].moove_costs.ROTATE
+
+    if (this.battery >= cost) {
+      this.battery -= cost
       const new_orientation_index = (Map.directions.indexOf(this.orientation) - 1 + Map.directions.length) % Map.directions.length
       this.orientation = Map.directions[new_orientation_index]
       this.round_movements.actions.push({
-        action: 'turn-left',
+        name: 'turn-left',
         new_orientation: this.orientation,
         robot_id: this.robot_id,
       })
@@ -99,25 +105,31 @@ class Robot {
       return
     }
 
+    const cost = Robot.models[this.model].moove_costs.WALK
+
     for (let i = 0; i < steps; i++) {
-      if (this.battery >= 2) {
-        this.battery -= 2
+      if (this.battery >= cost) {
+        this.battery -= cost
 
         const new_position = this.map.try_step(this)
 
         const movement = {
-          action: 'walk',
+          name: 'walk',
           new_position,
           robot_id: this.robot_id,
+          // item have to be encapsulated in array to match check format
+          events: [],
+          tiles_checked: [this.map.get_tiles_layers([new_position])[0]]
         }
 
         if (JSON.stringify(this.position) === JSON.stringify(new_position)) {
-          movement.event = 'bumped'
+          movement.events.push({
+            name: "bumped"
+          })
         } else {
           this.position = new_position
         }
 
-        //update robot memory on bumped or crossed tiles
         this.map.update_robot_memory(this, [new_position])
 
         this.round_movements.actions.push(movement)
@@ -132,13 +144,14 @@ class Robot {
       return
     }
 
+    const cost = Robot.models[this.model].moove_costs.CHECK
 
-    if (this.battery >= 1) {
-      this.battery -= 1
+    if (this.battery >= cost) {
+      this.battery -= cost
       const tiles_coordonates = this.map.check_tiles(this)
       const check_action = {
-        action: 'check',
-        tiles_checked: tiles_coordonates,
+        name: 'check',
+        tiles_checked: this.map.get_tiles_layers(tiles_coordonates),
         robot_id: this.robot_id,
       }
       this.map.update_robot_memory(this, tiles_coordonates)
@@ -153,7 +166,7 @@ class Robot {
   pass() {
     this.isRunning = false
     this.round_movements.actions.push({
-      action: 'wait',
+      name: 'wait',
       robot_id: this.robot_id,
     })
   }
@@ -161,7 +174,7 @@ class Robot {
   out_of_energy() {
     this.isRunning = false
     this.round_movements.actions.push({
-      action: 'OOE',
+      name: 'OOE',
       robot_id: this.robot_id,
     })
   }
@@ -170,16 +183,26 @@ class Robot {
     if (!this.isRunning) {
       return
     }
+    const cost = Robot.models[this.model].moove_costs.HIT
 
-    if (this.battery >= 2) {
-      this.battery -= 2
+    if (this.battery >= cost) {
+      this.battery -= cost
       const tile_hitted = this.map.get_hitted_tiles(this)
 
+
+      const actions = [{
+        name: "hit",
+        events: [],
+        robot_id: this.robot_id,
+      }]
+
       for (const tile of tile_hitted) {
-        const actions = this.map.resolve_tile_hit(tile, this)
-        for (const action of actions) {
-          this.round_movements.actions.push(action)
-        }
+        this.map.resolve_tile_hit(tile, this, actions)
+
+      }
+
+      for (const action of actions) {
+        this.round_movements.actions.push(action)
       }
 
     } else {
@@ -195,7 +218,7 @@ class Robot {
     } else {
 
       return {
-        action: "get-hit",
+        name: "get-hit",
         damage,
         robot_id: this.robot_id
       }
@@ -211,7 +234,7 @@ class Robot {
     map.layers.opponent[index] = null
 
     return {
-      action: 'die',
+      name: 'die',
       robot_id: this.robot_id,
       events: [
         {
@@ -228,8 +251,11 @@ class Robot {
       return
     }
 
-    if (this.battery >= 4) {
-      this.battery -= 4
+    const cost = Robot.models[this.model].moove_costs.JUMP
+
+
+    if (this.battery >= cost) {
+      this.battery -= cost
       const tiles_jumped = this.map.get_jumped_tiles(this)
       const actions = this.map.resolve_jump(tiles_jumped, this)
       for (const action of actions) {
@@ -519,18 +545,14 @@ class Map {
     return tiles
   }
 
-  resolve_tile_hit(tile_address, robot) {
-    const actions = [{
-      action: "attack",
-      events: [],
-      robot_id: robot.robot_id,
-    }]
+  resolve_tile_hit(tile_address, robot, actions) {
 
     const tile_layers = this.get_tiles_layers([tile_address])[0]
 
     if (tile_layers.obstacles) {
       actions[0].events.push({
-        event: "destroy-" + tile_layers.obstacles,
+        name: "destroy",
+        obstacle: tile_layers.obstacles,
         address: tile_layers.addresses
       })
 
@@ -541,8 +563,6 @@ class Map {
       const opponent_action = tile_layers.opponent.get_hit(robot.damage, this)
       actions.push(opponent_action)
     }
-
-    return actions
   }
 
   get_jumped_tiles(robot) {
@@ -602,7 +622,7 @@ class Map {
     const actions = []
 
     const action = {
-      action: 'jump',
+      name: 'jump',
       robot_id: robot.robot_id,
       events: [],
     }
@@ -618,7 +638,7 @@ class Map {
 
     } else if (this.get_enemy_on_tile(max_range_tile)) {
       const opponent_action = this.get_enemy_on_tile(max_range_tile).get_hit(15, this)
-      action.events.push({ event: 'bumped' })
+      action.events.push({ name: 'bumped' })
 
       actions.push(action)
       actions.push(opponent_action)
@@ -626,7 +646,8 @@ class Map {
     } else {
 
       action.events.push({
-        event: "destroy-" + this.layers.obstacles[this.get_index_by_address(max_range_tile.x, max_range_tile.y)],
+        event: "destroy",
+        obstacle: this.layers.obstacles[this.get_index_by_address(max_range_tile.x, max_range_tile.y)],
         address: max_range_tile,
       })
 

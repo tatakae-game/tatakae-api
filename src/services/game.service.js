@@ -119,8 +119,76 @@ const encapsulate_user_code = (code, robot, opponent_robot) => {
 
 }
 
-const update_robot = (round, robot, opponent_robot) => {
+function reupdate_memory_map(robot, action) {
+  for (const tile_to_update of action.tiles_checked) {
+    robot.memory_map[robot.map.get_index_by_address(tile_to_update.addresses.x, tile_to_update.addresses.y)] = tile_to_update
+  }
+}
 
+function resolve_action(action, robot) {
+  const name = action.name
+
+  switch (name) {
+    case 'walk':
+      robot.position = action.new_position
+      reupdate_memory_map(robot, action)
+      break
+
+    case 'jump':
+      robot.position = action.new_position
+      resolve_events(action.events, robot.map)
+      break
+
+    case 'check':
+      reupdate_memory_map(robot, action)
+      break
+
+    case 'hit':
+      resolve_events(action.events, robot.map)
+      break
+
+    case 'get-hit':
+      robot.hp -= action.damage
+      break
+
+    case 'die':
+      robot.status = "dead"
+      resolve_events(action.events, robot.map)
+      break
+  }
+}
+
+function resolve_events(events, map) {
+  for (const event of events) {
+    switch (event.name) {
+      case 'bumped':
+        break
+
+      case 'destroy':
+        map.layers.obstacles[map.get_index_by_address(event.address.x, event.address.y)] = null
+        break
+
+
+      case 'lay-scraps':
+        map.layers.items[map.get_index_by_address(event.address.x, event.address.y)].push('scraps')
+        break
+
+    }
+  }
+}
+
+const update_robot = (round, robot, opponent_robot) => {
+  for (const action of round.actions) {
+    if (action.robot_id === robot.robot_id) {
+      resolve_action(action, robot)
+    } else {
+      resolve_action(action, opponent_robot)
+    }
+
+    if (action.name === 'die') {
+      return
+    }
+  }
 }
 
 const end_game = (socket, robot, opponent_robot, user, opponent) => {
