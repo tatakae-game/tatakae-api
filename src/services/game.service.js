@@ -155,6 +155,17 @@ function resolve_action(action, robot) {
       robot.status = "dead"
       resolve_events(action.events, robot.map)
       break
+
+    case 'turn-left':
+      robot.orientation = action.new_orientation
+      break
+
+    case 'turn-right':
+      robot.orientation = action.new_orientation
+      break
+
+    default:
+      break
   }
 }
 

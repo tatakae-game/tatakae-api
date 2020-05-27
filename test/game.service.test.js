@@ -212,6 +212,8 @@ describe('update robot()', () => {
 
       robot_copy.hit()
 
+      console.log(robot_copy.round_movements)
+
       assert.equal(robot_copy.round_movements.actions[1].name, 'get-hit')
       assert.equal(robot_copy.round_movements.actions[1].robot_id, opponent.robot_id)
 
@@ -247,23 +249,94 @@ describe('update robot()', () => {
 
   describe('jump', () => {
     it('should properly display robot on the tile, whatever he bumps or not', () => {
+      const field = game_service.generate_field()
+      const map = new game_classes.Map(field)
+      map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      const opponent = new game_classes.Robot('default', map, user_ids[1])
+
+      const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+
+      robot_copy.jump()
+
+      assert.equal(robot.position.x, 0)
+      assert.equal(robot.position.y, 0)
+
+      assert.equal(robot_copy.position.x, 0)
+      assert.equal(robot_copy.position.y, 2)
+
+      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+
+      assert.equal(robot.position.x, 0)
+      assert.equal(robot.position.y, 2)
     })
 
     it('should update enemy robot hp on bumping on enemy', () => {
+      const field = game_service.generate_field()
+      const map = new game_classes.Map(field)
 
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      const opponent = new game_classes.Robot('default', map, user_ids[1])
+      opponent.position = { x: 0, y: 2 }
+
+
+      const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+      const opponent_copy = new game_classes.Robot('default', map, user_ids[1])
+      opponent_copy.position = { x: 0, y: 2 }
+
+      map.set_enemy_robots([opponent_copy])
+
+      robot_copy.jump()
+
+      assert.equal(opponent.hp, game_classes.Robot.models[opponent.model].hp)
+      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+
+      assert.equal(robot_copy.round_movements.actions[1].name, 'get-hit')
+      assert.equal(robot_copy.round_movements.actions[1].robot_id, opponent.robot_id)
+      assert.equal(opponent.hp, game_classes.Robot.models[opponent.model].hp - 15)
     })
   })
 
   describe('turn-left', () => {
-    it('should change robot orientation on lefts', () => {
+    it('should change robot orientation on left', () => {
+      const field = game_service.generate_field()
+      const map = new game_classes.Map(field)
 
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      const opponent = new game_classes.Robot('default', map, user_ids[1])
+
+      const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+
+      robot_copy.reverse_clockwise_rotation()
+
+      assert.equal(robot_copy.orientation, 'left')
+      assert.equal(robot.orientation, 'up')
+
+      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+
+      assert.equal(robot.orientation, robot_copy.orientation)
     })
   })
 
   describe('turn-right', () => {
     it('should change robot orientation on right', () => {
+      const field = game_service.generate_field()
+      const map = new game_classes.Map(field)
 
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      const opponent = new game_classes.Robot('default', map, user_ids[1])
+
+      const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+
+      robot_copy.clockwise_rotation()
+
+      assert.equal(robot_copy.orientation, 'right')
+      assert.equal(robot.orientation, 'up')
+
+      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+
+      assert.equal(robot.orientation, robot_copy.orientation)
     })
   })
 })
