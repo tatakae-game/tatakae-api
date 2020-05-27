@@ -112,8 +112,35 @@ describe('update robot()', () => {
       assert.equal(opponent.status, "dead")
     })
 
-    it.skip('should stop process on death revealed to earn process time', () => {
+    it('should stop process on death revealed to earn process time', () => {
+      const field = game_service.generate_field()
+      const map = new game_classes.Map(field)
 
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      const opponent = new game_classes.Robot('default', map, user_ids[1])
+
+      opponent.position = { x: 0, y: 1 }
+      opponent.hp = 1
+
+      const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+      const opponent_copy = new game_classes.Robot('default', map, user_ids[1])
+
+      opponent_copy.position = { x: 0, y: 1 }
+      opponent_copy.hp = 1
+
+      map.set_enemy_robots([opponent_copy])
+
+      robot_copy.hit()
+      robot_copy.clockwise_rotation()
+
+      assert.equal(robot_copy.orientation, 'right')
+
+      assert.equal(robot.orientation, 'up')
+
+      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+
+      assert.equal(opponent.status, 'dead')
+      assert.equal(robot.orientation, 'up')
     })
 
     it('should lay scraps on map', () => {
@@ -211,8 +238,6 @@ describe('update robot()', () => {
       const robot_copy = new game_classes.Robot('default', map, user_ids[0])
 
       robot_copy.hit()
-
-      console.log(robot_copy.round_movements)
 
       assert.equal(robot_copy.round_movements.actions[1].name, 'get-hit')
       assert.equal(robot_copy.round_movements.actions[1].robot_id, opponent.robot_id)
@@ -339,7 +364,28 @@ describe('update robot()', () => {
       assert.equal(robot.orientation, robot_copy.orientation)
     })
   })
+
+  describe('OOE', () => {
+    it('should not interract with robot end turn update at all', () => {
+      const field = game_service.generate_field()
+      const map = new game_classes.Map(field)
+
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+      const opponent = new game_classes.Robot('default', map, user_ids[1])
+
+      const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+      robot_copy.battery = 0
+
+      robot_copy.clockwise_rotation()
+
+      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      console.log(robot_copy.round_movements)
+
+      assert.equal(robot.orientation, robot_copy.orientation)
+    })
+  })
 })
+
 
 describe('end_game', () => {
   it.skip('should update users score', () => {

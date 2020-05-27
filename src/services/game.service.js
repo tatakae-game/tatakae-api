@@ -164,6 +164,9 @@ function resolve_action(action, robot) {
       robot.orientation = action.new_orientation
       break
 
+    case 'OOE':
+      break
+
     default:
       break
   }
@@ -209,12 +212,6 @@ const end_game = (socket, robot, opponent_robot, user, opponent) => {
 const sanitize_round_info = (user_round, opponent_round) => {
 
 }
-
-const resetRobots = (robot, opponent_robot) => {
-  robot.battery = robot.models[robot.model].battery
-  opponent_robot = opponent_robot.models[opponent_robot.model].battery
-}
-
 const randomize_initial_robot_position = (robot, enemy_robot, map) => {
 
 }
@@ -228,6 +225,5 @@ export {
   update_robot,
   end_game,
   sanitize_round_info,
-  resetRobots,
   randomize_initial_robot_position,
 }
