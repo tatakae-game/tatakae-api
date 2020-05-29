@@ -284,16 +284,16 @@ class Map {
 
   }
 
-  from_instance(instance, robot, enemy_robots) {
+  static from_instance(instance, robot, enemy_robots) {
     const map = new Map(instance.layers)
 
     for (const property in instance) {
       map[property] = instance[property]
     }
 
-    this.robot = robot
+    map.robot = robot
 
-    this.set_enemy_robots(enemy_robots)
+    map.set_enemy_robots(enemy_robots)
 
     return map
   }
@@ -618,7 +618,7 @@ class Map {
   resolve_jump(tiles_jumped, robot) {
 
     const max_range_tile = tiles_jumped[0]
-    const middle_tile = tiles_jumped[1]
+    const middle_tile = tiles_jumped[1] ? tiles_jumped[1] : tiles_jumped[0]
     const actions = []
 
     const action = {
@@ -667,8 +667,6 @@ class Map {
 
     return actions
   }
-
-
 }
 
 export default { Robot, Map }

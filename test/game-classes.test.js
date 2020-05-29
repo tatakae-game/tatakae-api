@@ -1,6 +1,6 @@
 import { strict as assert, AssertionError } from 'assert'
 
-import game_classes from '../src/socket-endpoints/game-classes'
+import game_classes from '../src/game/game-classes'
 import * as game_services from '../src/services/game.service'
 
 

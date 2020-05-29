@@ -5,7 +5,7 @@ import token_middlware from '../socket-middlewares/token'
 import * as users from '../models/users'
 import * as wandbox from '../services/wandbox.service'
 import * as game_service from '../services/game.service'
-import gameClasses from './game-classes'
+import gameClasses from '../game/game-classes'
 import * as game_constants from '../constants/game'
 
 /**
@@ -20,23 +20,12 @@ export default (io) => {
       /**
        *  data for front instanciation
        */
-      const field = game_service.generate_field()
-      const map = new gameClasses.Map(field)
-      console.log(map.get_tiles_layers([{ x: 1, y: 3 }]))
 
       const user = await users.find_by_token(socket.token)
-      const robot = new gameClasses.Robot(user.robot, map)
-
-
       const opponent = socket.training ? null : await users.find_opponent(user)
-      opponent.code = `robot.walk(3)`
-      const opponent_robot = new gameClasses.Robot(opponent ? opponent.robot : 'default', map)
-
-      console.log(robot)
-
-      // game_service.randomize_initial_robot_position(robot, opponent_robot, map)
 
       socket.emit('match found', await game_service.sanitize_game_info(user, robot, opponent, opponent_robot, field))
+      game_service.emit_robot_spawn()
 
       // fs.readFile(path.resolve(__dirname, "./game-classes.js"), async (err, game_classes) => {
       //   if (err) {

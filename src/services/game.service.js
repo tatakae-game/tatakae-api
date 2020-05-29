@@ -1,4 +1,9 @@
+import * as fs from 'fs'
+import * as path from 'path'
+
 import * as game_constants from '../constants/game'
+import * as wandbox from './wandbox.service'
+import game_classes from '../game/game-classes'
 
 function fill_ground(type, size) {
   return Array(size * size).fill(type)
@@ -100,25 +105,6 @@ const sanitize_game_info = (user, robot, opponent, opponent_robot, field) => {
   }
 }
 
-
-const encapsulate_user_code = (code, robot, opponent_robot) => {
-
-  const user_robot_string = JSON.stringify(robot)
-  const opponent_robot_tring = JSON.stringify(opponent_robot)
-  const robot_affectation = `const robot = Robot.from_instance(JSON.parse('${user_robot_string}'));`
-  const opponent_robot_affectation = `const enemy_robot = Robot.from_instance(JSON.parse('${opponent_robot_tring}'));`
-  const code_starter = `while (robot.battery > 0 && robot.hp > 0 && robot.isRunning) {\n`
-  const code_ender = `\n}`
-  const returner = `if(robot.onTest) {
-    console.log(JSON.stringify(robot.class_tests));
-  } else {
-    console.log(JSON.stringify(robot.round_movements));
-  }`
-
-  return robot_affectation + opponent_robot_affectation + code_starter + code + code_ender + returner
-
-}
-
 function reupdate_memory_map(robot, action) {
   for (const tile_to_update of action.tiles_checked) {
     robot.memory_map[robot.map.get_index_by_address(tile_to_update.addresses.x, tile_to_update.addresses.y)] = tile_to_update
@@ -205,8 +191,48 @@ const update_robot = (round, robot, opponent_robot) => {
   }
 }
 
+
+
+function trim_class_file(class_file_string) {
+  const trimmed_string = class_file_string.replace(/export.*/, '')
+  return trimmed_string
+}
+
+const encapsulate_user_code = (code, robot, opponent_robot, map) => {
+  let final_code = fs.readFileSync(path.resolve(__dirname, '../game/game-code.js')).toString()
+  let game_classes = fs.readFileSync(path.resolve(__dirname, '../game/game-classes.js')).toString()
+  final_code = final_code.replace('{{ game_classes }}', trim_class_file(game_classes))
+  final_code = final_code.replace('{{ user_robot_string }}', JSON.stringify(robot))
+  final_code = final_code.replace('{{ map_string }}', JSON.stringify(map))
+  final_code = final_code.replace('{{ opponent_robot_string }}', JSON.stringify(opponent_robot))
+
+
+  final_code = final_code.replace('{{ user_code }}', code)
+
+  console.log('ah' + final_code)
+  return final_code
+
+}
+
+const run_round = async (robot, user_code, opponent, map) => {
+  const robot_turn_code = encapsulate_user_code(user_code, robot, opponent, map)
+  return await wandbox.execute_code(robot_turn_code)
+}
+
+const end_round = (socket, round_movements, robot, opponent, map) => {
+  update_robot(round_movements, robot, opponent)
+}
+
 const end_game = (socket, robot, opponent_robot, user, opponent) => {
 
+}
+
+const start_game = async (socket) => {
+  const game_config = {
+    user_token: await users.find_by_token(socket.token)
+  }
+
+  // game_config.active_robot = new game_classes.Robot()
 }
 
 const sanitize_round_info = (user_round, opponent_round) => {
@@ -218,6 +244,8 @@ const randomize_initial_robot_position = (robot, enemy_robot, map) => {
 
 
 
+
+
 export {
   generate_field,
   sanitize_game_info,
@@ -226,4 +254,5 @@ export {
   end_game,
   sanitize_round_info,
   randomize_initial_robot_position,
+  run_round,
 }

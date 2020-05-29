@@ -2,7 +2,7 @@ import { strict as assert } from 'assert'
 import * as lodash from 'lodash'
 import * as game_constants from '../src/constants/game'
 import * as game_service from '../src/services/game.service'
-import game_classes from '../src/socket-endpoints/game-classes'
+import game_classes from '../src/game/game-classes'
 
 const user_ids = ['1203ascasc123', '1203ascasc153', '1203ascasc193', '1203ascasc1123']
 
@@ -379,7 +379,6 @@ describe('update robot()', () => {
       robot_copy.clockwise_rotation()
 
       game_service.update_robot(robot_copy.round_movements, robot, opponent)
-      console.log(robot_copy.round_movements)
 
       assert.equal(robot.orientation, robot_copy.orientation)
     })
@@ -390,6 +389,28 @@ describe('update robot()', () => {
 describe('end_game', () => {
   it.skip('should update users score', () => {
 
+  })
+})
+
+describe('encapsulate_user_code', () => {
+  it.skip('should properly encapsulate user code', () => {
+    // Ce test est purement graphique en ligne de commande, pour le développeur.
+    game_service.encapsulate_user_code('hello world !', new game_classes.Robot('default', { square_size: 2 }, user_ids[0]), new game_classes.Robot('default', { square_size: 2 }, user_ids[1]))
+  })
+})
+
+describe('run_round', () => {
+  it('should return robot turn actions if user_code is usable', async () => {
+    const field = game_service.generate_field()
+    const map = new game_classes.Map(field)
+    map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    const opponent = new game_classes.Robot('default', map, user_ids[1])
+
+    const code = "robot.reverse_clockwise_rotation(); robot.jump();"
+
+    const round_actions = await game_service.run_round(robot, code, opponent, map)
+    
   })
 })
 

@@ -14,7 +14,7 @@ export async function execute_code(code) {
       return res.data
     }
 
-    return JSON.parse(res.data.program_output).actions
+    return JSON.parse(res.data.program_output)
   } catch (e) {
     console.log(e)
   }
