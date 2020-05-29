@@ -63,6 +63,31 @@ router.get('/users/search', guard({ auth: constants.AUTH }), async (req, res) =>
   }
 })
 
+router.get('/users/admins',
+  guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_DASHBOARD] }),
+  async (req, res) => {
+    try {
+      const admins = (await users.model.find().populate('groups'))
+        .reduce((arr, admin) => {
+          const is_admin = admin?.groups.reduce((acc, group) => {
+            for (const permission of group.permissions) {
+              if (permission.name === constants.PERMISSION_DASHBOARD && permission.value) {
+                acc = true
+              }
+            }
+            return acc
+          }, false)
+          if (is_admin) { arr.push(admin) }
+          return arr
+        }, [])
+
+      res.json({ success: true, users: admins.map(users.sanitize) })
+
+    } catch (e) {
+      res.status(500).json({ success: false, errors: [e.message] })
+    }
+  })
+
 router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const user = await users.model.findById(req.params.id).populate('groups').lean()
@@ -104,7 +129,7 @@ router.put('/users/:id', guard({ auth: constants.AUTH, permissions: [constants.P
 
       if (errors.length > 0) {
         return res.status(400).json({
-          succsess: false,
+          success: false,
           errors,
         })
       }
