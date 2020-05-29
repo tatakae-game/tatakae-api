@@ -26,7 +26,7 @@ export default (io) => {
         room.messages.push(message)
         room.save()
 
-        socket.emit('new message', rooms.sanitize_message(message))
+        nsp.emit('new message', rooms.sanitize_message(message))
       })
     } catch {
       console.error(`The room ${room_id} does not exist.`)
