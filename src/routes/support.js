@@ -86,24 +86,26 @@ router.get('/support/admin/tickets/closed',
     }
   })
 
-router.put(`/support/tickets/:id/close`, guard({ auth: constants.AUTH }), async (req, res) => {
+const statusSchema = Joi.object().keys({
+  status: Joi.string().min(6).required()
+})
+
+router.put(`/support/tickets/:id/status`,
+  guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_DASHBOARD] }),
+  schema({ body: statusSchema }),
+  async (req, res) => {
   try {
+    const { status } = req.body
+    if (await rooms.model.exists({ _id: req.params.id })) {
+      await rooms.model.updateOne({ _id: req.params.id }, { status, })
+      res.json({ success: true, })
 
-    await rooms.model.updateOne(
-      { _id: req.params.id },
-      { status: 'closed', }
-    )
+    } else {
+      res.status(404).json({ success: false, errors: ["The ressource does not exist."], })
+    }
 
-    res.json({
-      success: true,
-    })
-
-  } catch {
-    res.status(500).json({
-      success: false,
-      errors: ['An error occured.'],
-    })
-
+  } catch (e) {
+    res.status(500).json({ success: false, errors: [e.message], })
   }
 })
 
@@ -128,7 +130,7 @@ router.put(`/support/tickets/:id/assign`,
       return acc
     }, [])
 
-    const authorized = permissions?.includes(constants.PERMISSION_ADMIN)
+    const authorized = permissions?.includes(constants.PERMISSION_DASHBOARD)
 
     if (!authorized) {
       return res.status(400).json({
