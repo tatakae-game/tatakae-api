@@ -61,9 +61,23 @@ const generate_field = () => {
   return instantiate_empty_fields(field_size, field_type)
 }
 
+function sanitize_robot_data(robot) {
+  return {
+    id: robot.robot_id,
+    hp: robot.hp,
+    model: robot.model,
+    position: robot.position,
+    orientation: robot.orientation,
+  }
+}
 
-const sanitize_game_info = (user, robot, opponent, opponent_robot, field) => {
 
+function sanitize_game_start(game_configuration) {
+  return {
+    user: game_configuration.user,
+    opponent_name: game_configuration.opponent.username,
+    map: game_configuration.map,
+  }
 }
 
 function reupdate_memory_map(robot, action) {
@@ -117,6 +131,10 @@ function resolve_action(action, robot) {
     default:
       break
   }
+}
+
+const emit_game_start = (socket, game_configuration) => {
+  socket.emit('match found', sanitize_game_start(game_configuration))
 }
 
 function resolve_events(events, map) {
@@ -203,7 +221,6 @@ const start_game = async (socket) => {
   const game_config = {
     user: await users.find_by_token(socket.token)
   }
-
   game_config.opponent = await users.find_opponent(game_config.user)
   game_config.map = new game_classes.Map(generate_field())
   game_config.active_robot = new game_classes.Robot(game_config.user.robot, game_config.map, game_config.user._id)
@@ -290,7 +307,6 @@ const randomize_initial_robot_position = (robot, enemy_robot, map) => {
 export {
   generate_field,
   get_first_free_tile,
-  sanitize_game_info,
   encapsulate_user_code,
   update_robot,
   end_game,
@@ -299,4 +315,5 @@ export {
   start_game,
   run_round,
   end_round,
+  emit_game_start,
 }
