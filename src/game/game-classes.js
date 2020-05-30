@@ -1,6 +1,6 @@
 class Robot {
 
-  isRunning = true
+  is_running = true
   status = 'alive'
 
   static models = {
@@ -59,7 +59,7 @@ class Robot {
    * Robot actions
    */
   clockwise_rotation() {
-    if (!this.isRunning) {
+    if (!this.is_running) {
       return
     }
 
@@ -80,7 +80,7 @@ class Robot {
   }
 
   reverse_clockwise_rotation() {
-    if (!this.isRunning) {
+    if (!this.is_running) {
       return
     }
 
@@ -101,7 +101,7 @@ class Robot {
   }
 
   walk(steps) {
-    if (!this.isRunning) {
+    if (!this.is_running) {
       return
     }
 
@@ -140,7 +140,7 @@ class Robot {
   }
 
   check() {
-    if (!this.isRunning) {
+    if (!this.is_running) {
       return
     }
 
@@ -164,7 +164,7 @@ class Robot {
   }
 
   pass() {
-    this.isRunning = false
+    this.is_running = false
     this.round_movements.actions.push({
       name: 'wait',
       robot_id: this.robot_id,
@@ -172,7 +172,7 @@ class Robot {
   }
 
   out_of_energy() {
-    this.isRunning = false
+    this.is_running = false
     this.round_movements.actions.push({
       name: 'OOE',
       robot_id: this.robot_id,
@@ -180,7 +180,7 @@ class Robot {
   }
 
   hit() {
-    if (!this.isRunning) {
+    if (!this.is_running) {
       return
     }
     const cost = Robot.models[this.model].moove_costs.HIT
@@ -247,7 +247,7 @@ class Robot {
   }
 
   jump() {
-    if (!this.isRunning) {
+    if (!this.is_running) {
       return
     }
 

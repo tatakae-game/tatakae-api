@@ -4,6 +4,7 @@ import * as path from 'path'
 import * as game_constants from '../constants/game'
 import * as wandbox from './wandbox.service'
 import game_classes from '../game/game-classes'
+import * as users from '../models/users'
 
 function fill_ground(type, size) {
   return Array(size * size).fill(type)
@@ -31,32 +32,10 @@ function fill_addresses(size) {
   const tiles = []
   for (let i = size - 1; i >= 0; i--) {
     for (let j = 0; j < size; j++) {
-      tiles.push({ x: i, y: j })
+      tiles.push({ x: j, y: i })
     }
   }
   return tiles
-}
-
-/**
- *
- */
-function return_available_position_on_edge(edge, map) {
-  switch (edge) {
-    case 'up':
-      break
-
-    case 'right':
-      break
-
-    case 'down':
-      break
-
-    case 'left':
-      break
-
-    default:
-      return { x: 0, y: 0 }
-  }
 }
 
 const instantiate_empty_fields = (size, type) => {
@@ -84,25 +63,7 @@ const generate_field = () => {
 
 
 const sanitize_game_info = (user, robot, opponent, opponent_robot, field) => {
-  return {
-    opponent: {
-      name: opponent ? opponent.username : 'dummy',
-      robot: {
-        hp: opponent_robot.hp,
-        modele: opponent_robot.modele,
-        battery: opponent_robot.battery,
-      },
-    },
-    player: {
-      name: user.username,
-      robot: {
-        hp: robot.hp,
-        modele: robot.modele,
-        battery: robot.battery
-      },
-    },
-    field,
-  }
+
 }
 
 function reupdate_memory_map(robot, action) {
@@ -209,50 +170,133 @@ const encapsulate_user_code = (code, robot, opponent_robot, map) => {
 
   final_code = final_code.replace('{{ user_code }}', code)
 
-  console.log('ah' + final_code)
   return final_code
 
 }
 
-const run_round = async (robot, user_code, opponent, map) => {
-  const robot_turn_code = encapsulate_user_code(user_code, robot, opponent, map)
-  return await wandbox.execute_code(robot_turn_code)
+const run_round = async (robot, user_code, opponent, map, language) => {
+  if (language === 'js') {
+    const robot_turn_code = encapsulate_user_code(user_code, robot, opponent, map)
+    return await wandbox.execute_code(robot_turn_code)
+  } else if (language === 'san') {
+    // TODO implement san round_movement get
+  }
+
 }
 
-const end_round = (socket, round_movements, robot, opponent, map) => {
-  update_robot(round_movements, robot, opponent)
+const end_round = (socket, round_movements, game_configuration) => {
+  update_robot(round_movements, game_configuration.active_robot, game_configuration.opponent_robot)
+  if (game_configuration.active_robot.status === 'dead' || game_configuration.opponent_robot.status === 'dead') {
+    end_game(socket, game_configuration)
+  } else {
+    let tmp = game_configuration.active_robot
+    game_configuration.active_robot = game_configuration.opponent_robot
+    game_configuration.opponent_robot = tmp
+  }
 }
 
-const end_game = (socket, robot, opponent_robot, user, opponent) => {
+const end_game = (socket, game_configuration) => {
 
 }
 
 const start_game = async (socket) => {
   const game_config = {
-    user_token: await users.find_by_token(socket.token)
+    user: await users.find_by_token(socket.token)
   }
 
-  // game_config.active_robot = new game_classes.Robot()
+  game_config.opponent = await users.find_opponent(game_config.user)
+  game_config.map = new game_classes.Map(generate_field())
+  game_config.active_robot = new game_classes.Robot(game_config.user.robot, game_config.map, game_config.user._id)
+  game_config.opponent_robot = new game_classes.Robot(game_config.opponent.robot, game_config.map, game_config.opponent._id)
+
+  randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
+
+  if (socket.used_language) {
+    game_config.user.used_language = socket.used_language
+  }
+
+  return game_config
+
 }
 
 const sanitize_round_info = (user_round, opponent_round) => {
 
 }
-const randomize_initial_robot_position = (robot, enemy_robot, map) => {
+
+const get_first_free_tile = (side, map) => {
+  let tile_address = {}
+  switch (side) {
+    case 'up':
+      tile_address = { x: 0, y: map.square_size - 1, }
+      while (map.has_obstacle(tile_address)) {
+        tile_address.x++
+        if (tile_address.x >= map.square_size) {
+          tile_address.y--
+          tile_address.x = 0
+        }
+      }
+
+      break
+
+    case 'right':
+
+      tile_address = { x: map.square_size - 1, y: map.square_size - 1, }
+      while (map.has_obstacle(tile_address)) {
+        tile_address.y--
+        if (tile_address.y < 0) {
+          tile_address.x--
+          tile_address.y = map.square_size - 1
+        }
+      }
+      break
+
+    case 'down':
+      tile_address = { x: 0, y: 0, }
+      while (map.has_obstacle(tile_address)) {
+        tile_address.x++
+        if (tile_address.x >= map.square_size) {
+          tile_address.y++
+          tile_address.x = 0
+        }
+      }
+      break
+
+    case 'left':
+      tile_address = { x: 0, y: map.square_size - 1, }
+      while (map.has_obstacle(tile_address)) {
+        tile_address.y--
+        if (tile_address.y < 0) {
+          tile_address.x++
+          tile_address.y = map.square_size - 1
+        }
+      }
+
+      break
+
+  }
+  return tile_address
 
 }
 
-
-
-
+const randomize_initial_robot_position = (robot, enemy_robot, map) => {
+  const robot_side = game_classes.Map.directions[Math.floor(Math.random() * Math.floor(game_classes.Map.directions.length))]
+  const opponent_side = game_classes.Map.directions[(game_classes.Map.directions.indexOf(robot_side) + 2) % 4]
+  robot.position = get_first_free_tile(robot_side, map)
+  robot.orientation = opponent_side
+  enemy_robot.position = get_first_free_tile(opponent_side, map)
+  enemy_robot.orientation = robot_side
+}
 
 export {
   generate_field,
+  get_first_free_tile,
   sanitize_game_info,
   encapsulate_user_code,
   update_robot,
   end_game,
   sanitize_round_info,
   randomize_initial_robot_position,
+  start_game,
   run_round,
+  end_round,
 }

@@ -21,8 +21,9 @@ export default (io) => {
        *  data for front instanciation
        */
 
-      const user = await users.find_by_token(socket.token)
-      const opponent = socket.training ? null : await users.find_opponent(user)
+       const game_configuration = game_service.start_game(socket)
+      
+
 
       socket.emit('match found', await game_service.sanitize_game_info(user, robot, opponent, opponent_robot, field))
       game_service.emit_robot_spawn()

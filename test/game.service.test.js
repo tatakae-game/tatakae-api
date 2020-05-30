@@ -18,6 +18,22 @@ function compare_memory_maps(robot, copy) {
   }
 }
 
+function generate_game_config() {
+
+  const game_config = {}
+
+  game_config.map = new game_classes.Map(game_service.generate_field())
+  game_config.active_robot = new game_classes.Robot('default', game_config.map, user_ids[0])
+  game_config.opponent_robot = new game_classes.Robot('default', game_config.map, user_ids[1])
+
+  game_service.randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
+
+  game_config.used_language = 'js'
+
+  return game_config
+
+}
+
 
 describe('generate_field()', () => {
   it('should return a map of x layers, depending of constants', () => {
@@ -26,7 +42,7 @@ describe('generate_field()', () => {
   })
 })
 
-describe('update robot()', () => {
+describe('update_robot()', () => {
   describe('walk', () => {
     it('should properly place robot on walk action', () => {
       const field = game_service.generate_field()
@@ -394,13 +410,12 @@ describe('end_game', () => {
 
 describe('encapsulate_user_code', () => {
   it.skip('should properly encapsulate user code', () => {
-    // Ce test est purement graphique en ligne de commande, pour le développeur.
     game_service.encapsulate_user_code('hello world !', new game_classes.Robot('default', { square_size: 2 }, user_ids[0]), new game_classes.Robot('default', { square_size: 2 }, user_ids[1]))
   })
 })
 
 describe('run_round', () => {
-  it('should return robot turn actions if user_code is usable', async () => {
+  it.skip('should return robot turn actions if user_code is usable', async () => {
     const field = game_service.generate_field()
     const map = new game_classes.Map(field)
     map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
@@ -409,14 +424,66 @@ describe('run_round', () => {
 
     const code = "robot.reverse_clockwise_rotation(); robot.jump();"
 
-    const round_actions = await game_service.run_round(robot, code, opponent, map)
-    
+    const round_actions = await game_service.run_round(robot, code, opponent, map, 'js')
+    console.log(round_actions)
+
   })
 })
 
+describe('start_game', () => {
+  it.skip('should return full configuration for game instantiation', async () => {
+    const game_config = await game_service.start_game({})
 
-describe('randomize_initial_robot_position()', () => {
-  it.skip('should place robot on a random position on opposed sides, facing each other', () => {
+  })
+})
 
+describe('end_round()', () => {
+  it('should switch robot and opponent_robot', () => {
+    const game_config = generate_game_config()
+
+    const first_active_robot = game_config.active_robot
+    const first_opponent_robot = game_config.opponent_robot
+
+    game_service.end_round({}, game_config.active_robot.round_movements, game_config)
+
+    assert.equal(game_config.active_robot.robot_id, first_opponent_robot.robot_id)
+    assert.equal(game_config.opponent_robot.robot_id, first_active_robot.robot_id)
+  })
+})
+
+describe('get_first_free_tile()', () => {
+  it('should return first free tile depending of the passed side', () => {
+    const map = new game_classes.Map(game_service.generate_field())
+    map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+    const side = 'down'
+
+    const result = game_service.get_first_free_tile(side, map)
+    assert.equal(result.x, 0)
+    assert.equal(result.y, 0)
+  })
+
+
+  it('should moove initial position if obstacle in on tile', () => {
+    const map = new game_classes.Map(game_service.generate_field())
+    map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+    map.layers.obstacles[0] = 'mountain'
+
+    const side = 'up'
+    const result = game_service.get_first_free_tile(side, map)
+    assert.equal(result.x, 1)
+    assert.equal(result.y, map.square_size - 1)
+  })
+
+  it('should go on second line if first line is full of obstacles', () => {
+    const map = new game_classes.Map(game_service.generate_field())
+    map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
+    for (let i = 0; i < map.square_size; i++) {
+      map.layers.obstacles[i] = 'mountain'
+    }
+
+    const side = 'up'
+    const result = game_service.get_first_free_tile(side, map)
+    assert.equal(result.x, 0)
+    assert.equal(result.y, map.square_size - 2)
   })
 })
