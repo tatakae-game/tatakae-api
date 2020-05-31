@@ -20,15 +20,24 @@ function compare_memory_maps(robot, copy) {
 
 function generate_game_config() {
 
-  const game_config = {}
-
+  const game_config = {
+    user: {
+      code: 'walk(3)',
+      selected_language: 'js',
+    },
+    opponent: {
+      code: 'jump()',
+      selected_language: 'js',
+    }
+  }
+  game_config.user_code = game_config.user.code
   game_config.map = new game_classes.Map(game_service.generate_field())
   game_config.active_robot = new game_classes.Robot('default', game_config.map, user_ids[0])
   game_config.opponent_robot = new game_classes.Robot('default', game_config.map, user_ids[1])
 
   game_service.randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
 
-  game_config.used_language = 'js'
+  game_config.selected_language = 'js'
 
   return game_config
 
@@ -448,6 +457,26 @@ describe('end_round()', () => {
 
     assert.equal(game_config.active_robot.robot_id, first_opponent_robot.robot_id)
     assert.equal(game_config.opponent_robot.robot_id, first_active_robot.robot_id)
+  })
+
+  it('should switch user_code if both are js users', () => {
+    const game_config = generate_game_config()
+
+    const first_user_code = game_config.user.code
+    const first_opponent_code = game_config.opponent.code
+    game_service.end_round({}, game_config.active_robot.round_movements, game_config)
+
+    assert.equal(game_config.user_code, first_opponent_code)
+  })
+
+  it('should switch selected_language', () => {
+    const game_config = generate_game_config()
+    game_config.opponent.selected_language = 'san'
+
+    assert.equal(game_config.selected_language, 'js')
+    game_service.end_round({}, game_config.active_robot.round_movements, game_config)
+
+    assert.equal(game_config.selected_language, 'san')
   })
 })
 

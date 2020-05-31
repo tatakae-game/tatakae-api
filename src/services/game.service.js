@@ -205,11 +205,16 @@ const run_round = async (robot, user_code, opponent, map, language) => {
 const end_round = (socket, round_movements, game_configuration) => {
   update_robot(round_movements, game_configuration.active_robot, game_configuration.opponent_robot)
   if (game_configuration.active_robot.status === 'dead' || game_configuration.opponent_robot.status === 'dead') {
+    game_configuration.all_killed = true
     end_game(socket, game_configuration)
   } else {
-    let tmp = game_configuration.active_robot
-    game_configuration.active_robot = game_configuration.opponent_robot
-    game_configuration.opponent_robot = tmp
+    // switch active robot
+    [game_configuration.active_robot, game_configuration.opponent_robot] = [game_configuration.opponent_robot, game_configuration.active_robot]
+
+    // switch running code & running_language
+    game_configuration.user_code = game_configuration.user_code === game_configuration.user.code ? game_configuration.opponent.code : game_configuration.user.code
+    game_configuration.selected_language = game_configuration.selected_language === game_configuration.user.selected_language ? game_configuration.opponent.selected_language : game_configuration.user.selected_language
+
   }
 }
 
@@ -226,14 +231,37 @@ const start_game = async (socket) => {
   game_config.active_robot = new game_classes.Robot(game_config.user.robot, game_config.map, game_config.user._id)
   game_config.opponent_robot = new game_classes.Robot(game_config.opponent.robot, game_config.map, game_config.opponent._id)
 
+  game_config.user_code = game_config.user.code
+
   randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
 
   if (socket.used_language) {
-    game_config.user.used_language = socket.used_language
+    game_config.user.selected_language = socket.selected_language
   }
+
+  game_config.all_killed = false
 
   return game_config
 
+}
+
+function generate_spawn_actions(robot, opponent) {
+  return {
+    actions: [
+      {
+        name: 'spawn',
+        unit: sanitize_robot_data(robot),
+      },
+      {
+        name: 'spawn',
+        unit: sanitize_robot_data(opponent),
+      }
+    ]
+  }
+}
+
+const emit_robot_spawn = (socket, game_configuration) => {
+  socket.emit('spawn', generate_spawn_actions(game_configuration.active_robot, game_configuration.opponent_robot))
 }
 
 const sanitize_round_info = (user_round, opponent_round) => {
@@ -316,4 +344,5 @@ export {
   run_round,
   end_round,
   emit_game_start,
+  emit_robot_spawn,
 }
