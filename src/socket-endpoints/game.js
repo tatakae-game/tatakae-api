@@ -17,18 +17,15 @@ export default (io) => {
   nsp.on('connection', async (socket) => {
     try {
 
-      /**
-       *  data for front instanciation
-       */
-
-      const game_configuration = game_service.start_game(socket)
+      const game_configuration = await game_service.start_game(socket)
 
       game_service.emit_game_start(socket, game_configuration)
       game_service.emit_robot_spawn(socket, game_configuration)
       let turn = game_constants.END_TURN
 
       while (turn > 0 && !game_configuration.all_killed) {
-        const round_actions = game_service.run_round(game_configuration.active_robot, game_configuration.user_code, game_configuration.opponent_robot, game_configuration.map, game_configuration.running_language)
+        const round_actions = await game_service.run_round(game_configuration.active_robot, game_configuration.user_code, game_configuration.opponent_robot, game_configuration.map, game_configuration.running_language)
+        console.log(round_actions)
         game_service.end_round(socket, round_actions, game_configuration)
       }
 

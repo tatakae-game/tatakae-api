@@ -74,8 +74,8 @@ function sanitize_robot_data(robot) {
 
 function sanitize_game_start(game_configuration) {
   return {
-    user: game_configuration.user,
-    opponent_name: game_configuration.opponent.username,
+    username: game_configuration.user.username,
+    opponent_username: game_configuration.opponent.username,
     map: game_configuration.map,
   }
 }
@@ -226,6 +226,7 @@ const start_game = async (socket) => {
   const game_config = {
     user: await users.find_by_token(socket.token)
   }
+
   game_config.opponent = await users.find_opponent(game_config.user)
   game_config.map = new game_classes.Map(generate_field())
   game_config.active_robot = new game_classes.Robot(game_config.user.robot, game_config.map, game_config.user._id)
