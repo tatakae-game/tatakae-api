@@ -512,6 +512,22 @@ describe('hit()', () => {
   it.skip('should update robot actions list', () => {
 
   })
+
+
+  describe('get_memorized_tiles()', () => {
+    it('should return robot memorized tiles', () => {
+      const field = game_services.generate_field()
+      const map = new game_classes.Map(field)
+      const robot = new game_classes.Robot('default', map, user_ids[0])
+
+      robot.check()
+      assert.equal(robot.get_memorized_tiles().length, 6)
+    })
+
+    it.skip('should not return any tiles containing "not_discovered"', () => {
+
+    })
+  })
 })
 
 describe('eat()', () => {

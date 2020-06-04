@@ -11,4 +11,7 @@ while (robot.battery > 0 && opponent.hp > 0 && robot.is_running) {
   {{ user_code }}
 }
 
+robot.map = null
+opponent.map = null
+
 console.log(JSON.stringify(robot.round_movements))

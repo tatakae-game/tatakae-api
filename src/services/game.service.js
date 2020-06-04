@@ -177,9 +177,30 @@ function trim_class_file(class_file_string) {
   return trimmed_string
 }
 
-const encapsulate_user_code = (code, robot, opponent_robot, map) => {
-  let final_code = fs.readFileSync(path.resolve(__dirname, '../game/game-code.js')).toString()
-  let game_classes = fs.readFileSync(path.resolve(__dirname, '../game/game-classes.js')).toString()
+const encapsulate_user_code = async (code, robot, opponent_robot, map) => {
+  const final_code_promise = new Promise((resolve, reject) => {
+    fs.readFile(path.resolve(__dirname, '../game/game-code.js'), (err, data) => {
+      if (err) {
+        return reject(err)
+      } else {
+        resolve(data)
+      }
+    })
+  })
+
+  const game_classes_promise = new Promise((resolve, reject) => {
+    fs.readFile(path.resolve(__dirname, '../game/game-classes.js'), (err, data) => {
+      if (err) {
+        return reject(err)
+      } else {
+        resolve(data)
+      }
+    })
+  })
+
+  let final_code = (await final_code_promise).toString()
+  let game_classes = (await game_classes_promise).toString()
+
   final_code = final_code.replace('{{ game_classes }}', trim_class_file(game_classes))
   final_code = final_code.replace('{{ user_robot_string }}', JSON.stringify(robot))
   final_code = final_code.replace('{{ map_string }}', JSON.stringify(map))
@@ -194,7 +215,8 @@ const encapsulate_user_code = (code, robot, opponent_robot, map) => {
 
 const run_round = async (robot, user_code, opponent, map, language) => {
   if (language === 'js') {
-    const robot_turn_code = encapsulate_user_code(user_code, robot, opponent, map)
+    console.log('language is js')
+    const robot_turn_code = await encapsulate_user_code(user_code, robot, opponent, map)
     return await wandbox.execute_code(robot_turn_code)
   } else if (language === 'san') {
     // TODO implement san round_movement get
@@ -202,24 +224,37 @@ const run_round = async (robot, user_code, opponent, map, language) => {
 
 }
 
+/**
+ * 
+ * @param {SocketIO.Socket} socket 
+ * @param {*} round_movements 
+ * @param {*} game_configuration 
+ */
 const end_round = (socket, round_movements, game_configuration) => {
   update_robot(round_movements, game_configuration.active_robot, game_configuration.opponent_robot)
+  console.log(game_configuration.active_robot.robot_id)
   if (game_configuration.active_robot.status === 'dead' || game_configuration.opponent_robot.status === 'dead') {
     game_configuration.all_killed = true
     end_game(socket, game_configuration)
   } else {
+    socket.emit('round actions', round_movements);
+    // emit_round_info(socket, round_movements)
+
     // switch active robot
     [game_configuration.active_robot, game_configuration.opponent_robot] = [game_configuration.opponent_robot, game_configuration.active_robot]
 
     // switch running code & running_language
     game_configuration.user_code = game_configuration.user_code === game_configuration.user.code ? game_configuration.opponent.code : game_configuration.user.code
-    game_configuration.selected_language = game_configuration.selected_language === game_configuration.user.selected_language ? game_configuration.opponent.selected_language : game_configuration.user.selected_language
-
+    game_configuration.selected_language = game_configuration.selected_language === game_configuration.user.selected_language ? game_configuration.opponent.selected_language : game_configuration.user.selected_languages
   }
 }
 
 const end_game = (socket, game_configuration) => {
 
+}
+
+function emit_round_info(socket, round_movements) {
+  socket.emit('round_actions', round_movements)
 }
 
 const start_game = async (socket) => {
