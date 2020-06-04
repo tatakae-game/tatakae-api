@@ -232,13 +232,11 @@ const run_round = async (robot, user_code, opponent, map, language) => {
  */
 const end_round = (socket, round_movements, game_configuration) => {
   update_robot(round_movements, game_configuration.active_robot, game_configuration.opponent_robot)
-  console.log(game_configuration.active_robot.robot_id)
   if (game_configuration.active_robot.status === 'dead' || game_configuration.opponent_robot.status === 'dead') {
     game_configuration.all_killed = true
     end_game(socket, game_configuration)
   } else {
     socket.emit('round actions', round_movements);
-    // emit_round_info(socket, round_movements)
 
     // switch active robot
     [game_configuration.active_robot, game_configuration.opponent_robot] = [game_configuration.opponent_robot, game_configuration.active_robot]
@@ -251,10 +249,6 @@ const end_round = (socket, round_movements, game_configuration) => {
 
 const end_game = (socket, game_configuration) => {
 
-}
-
-function emit_round_info(socket, round_movements) {
-  socket.emit('round_actions', round_movements)
 }
 
 const start_game = async (socket) => {
