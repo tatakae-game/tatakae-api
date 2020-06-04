@@ -249,6 +249,46 @@ const end_round = (socket, round_movements, game_configuration) => {
 
 const end_game = (socket, game_configuration) => {
 
+  if (game_configuration.test) {
+    socket.emit('end test phase')
+  } else {
+
+  }
+}
+
+const generate_test_game_config = async (socket, code, language) => {
+  const game_config = {
+    user: {
+      username: 'tester',
+      _id: 'user',
+      code,
+      robot: 'default'
+    }
+  }
+
+  game_config.opponent = {
+    username: 'opponent',
+    _id: 'opponent',
+    code,
+    robot: 'default'
+  }
+
+  game_config.map = new game_classes.Map(generate_field())
+  game_config.active_robot = new game_classes.Robot(game_config.user.robot, game_config.map, game_config.user._id)
+  game_config.opponent_robot = new game_classes.Robot(game_config.opponent.robot, game_config.map, game_config.opponent._id)
+
+  game_config.user_code = game_config.user.code
+
+  randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
+
+  if (socket.used_language) {
+    game_config.user.selected_language = socket.selected_language
+  }
+
+  game_config.all_killed = false
+  game_config.test = true
+
+  return game_config
 }
 
 const start_game = async (socket) => {
@@ -375,4 +415,5 @@ export {
   end_round,
   emit_game_start,
   emit_robot_spawn,
+  generate_test_game_config
 }

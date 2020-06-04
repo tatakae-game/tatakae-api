@@ -16,8 +16,15 @@ export default (io) => {
 
   nsp.on('connection', async (socket) => {
     try {
+      let game_configuration
+      if (socket.handshake.query.test === 'true') {
+        game_configuration = await game_service.generate_test_game_config(socket, socket.handshake.query.code)
+      } else {
+        game_configuration = await game_service.start_game(socket)
 
-      const game_configuration = await game_service.start_game(socket)
+      }
+
+      console.log(game_configuration)
 
       game_configuration.running_language = 'js'
 
