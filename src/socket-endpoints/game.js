@@ -5,8 +5,8 @@ import token_middlware from '../socket-middlewares/token'
 import * as users from '../models/users'
 import * as wandbox from '../services/wandbox.service'
 import * as game_service from '../services/game.service'
-import gameClasses from './game-classes'
-import * as game_constants from '../constants/field'
+import gameClasses from '../game/game-classes'
+import * as game_constants from '../constants/game'
 
 /**
  * @param {import('socket.io').Server} io 
@@ -16,48 +16,30 @@ export default (io) => {
 
   nsp.on('connection', async (socket) => {
     try {
+      let game_configuration
+      if (socket.handshake.query.test === 'true') {
+        game_configuration = await game_service.generate_test_game_config(socket, socket.handshake.query.code)
+      } else {
+        game_configuration = await game_service.start_game(socket)
 
-      /**
-       *  data for front instanciation
-       */
-      const field = game_service.generate_field()
-      const map = new gameClasses.Map(field)
+      }
 
-      const user = await users.find_by_token(socket.token)
-      const robot = new gameClasses.Robot(user.robot, field)
+      console.log(game_configuration)
 
-      const opponent = socket.training ? null : await users.find_opponent(user)
-      opponent.code = `robot.walk(3)`
-      const opponent_robot = new gameClasses.Robot(opponent ? opponent.robot : 'default', field)
+      game_configuration.running_language = 'js'
 
-      game_service.randomize_initial_robot_position(robot, opponent_robot, map)
+      game_service.emit_game_start(socket, game_configuration)
+      game_service.emit_robot_spawn(socket, game_configuration)
+      let turn = game_constants.END_TURN
 
-      socket.emit('match found', await game_service.sanitize_game_info(user, robot, opponent, opponent_robot, field))
+      // each turn is affected to robot, meaning turn should be X 2
+      while (turn > 0 && !game_configuration.all_killed) {
+        const round_actions = await game_service.run_round(game_configuration.active_robot, game_configuration.user_code, game_configuration.opponent_robot, game_configuration.map, game_configuration.running_language)
+        game_service.end_round(socket, round_actions, game_configuration)
+        turn -= 1
+      }
 
-      fs.readFile(path.resolve(__dirname, "./game-classes.js"), async (err, game_classes) => {
-        if (err) {
-          console.log(err)
-        } else {
-          const trimmed_classes = game_classes.toString().replace(/export.*/, '')
-          let actual_turn = 0
-
-          while (robot.hp > 0 && opponent_robot.hp > 0 && actual_turn < game_constants.END_TURN) {
-            game_service.resetRobots(robot, opponent_robot)
-
-            const user_round = await wandbox.execute_code(trimmed_classes + game_service.encapsulate_user_code(user.code, robot, opponent_robot))
-            game_service.update_robot(user_round, robot, opponent_robot)
-
-            const opponent_round = await wandbox.execute_code(trimmed_classes + game_service.encapsulate_user_code(opponent.code, opponent_robot))
-            game_service.update_robot(opponent_round, opponent_robot, robot)
-
-            actual_turn++
-            socket.emit('round_evenements', await game_service.sanitize_round_info(user_round, opponent_round))
-            console.log(user_round[0])
-          }
-
-          game_service.end_game(socket, robot, opponent_robot, user, opponent)
-        }
-      })
+      game_service.end_game(socket, game_configuration)
 
     } catch (e) {
       console.log(e)
