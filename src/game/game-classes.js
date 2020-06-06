@@ -100,7 +100,7 @@ class Robot {
     }
   }
 
-  walk(steps) {
+  walk(steps = 1) {
     if (!this.is_running) {
       return
     }
@@ -117,6 +117,7 @@ class Robot {
           name: 'walk',
           new_position,
           robot_id: this.robot_id,
+          orientation: this.orientation,
           // item have to be encapsulated in array to match check format
           events: [],
           tiles_checked: [this.map.get_tiles_layers([new_position])[0]]

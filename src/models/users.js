@@ -75,3 +75,11 @@ export async function find_opponent(user) {
   const random_index = Math.floor(Math.random() * Math.floor(opponents.length))
   return opponents[random_index]
 }
+
+export async function change_points(user_id, points) {
+  console.log(user_id)
+  const user = await model.findById(user_id)
+
+  user.score += points
+  user.save()
+}
