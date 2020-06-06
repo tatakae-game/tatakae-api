@@ -632,6 +632,7 @@ class Map {
     }
 
     robot.map.update_robot_memory(robot, tiles_jumped)
+    action.tiles_checked = this.get_tiles_layers(tiles_jumped)
 
     if (!this.has_obstacle(max_range_tile)) {
       robot.position = max_range_tile
