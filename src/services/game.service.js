@@ -262,10 +262,6 @@ const end_game = async (socket, game_configuration) => {
     await users.change_points(loser_id, -1)
     await users.change_points(winner_id, 1)
 
-
-
-
-
   }
 }
 

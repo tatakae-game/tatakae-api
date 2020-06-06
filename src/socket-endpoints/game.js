@@ -23,7 +23,6 @@ export default (io) => {
         game_configuration = await game_service.start_game(socket)
 
       }
-      console.log(game_configuration)
 
       game_service.emit_game_start(socket, game_configuration)
       game_service.emit_robot_spawn(socket, game_configuration)
@@ -37,7 +36,6 @@ export default (io) => {
         game_actions.push(...round.actions)
         turn -= 1
       }
-      console.log(game_actions)
 
       game_service.end_game(socket, game_configuration)
 
