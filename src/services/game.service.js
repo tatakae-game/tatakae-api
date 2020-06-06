@@ -161,7 +161,7 @@ function resolve_events(events, map) {
 
 const update_robot = (round, robot, opponent_robot) => {
   for (const action of round.actions) {
-    if (action.robot_id === robot.robot_id) {
+    if (action.robot_id === robot.robot_id.toString()) {
       resolve_action(action, robot)
     } else {
       resolve_action(action, opponent_robot)
@@ -241,7 +241,8 @@ const end_round = (socket, round_movements, game_configuration) => {
     socket.emit('round actions', round_movements);
 
     // switch active robot
-    [game_configuration.active_robot, game_configuration.opponent_robot] = [game_configuration.opponent_robot, game_configuration.active_robot]
+    [game_configuration.active_robot, game_configuration.opponent_robot] = [game_configuration.opponent_robot, game_configuration.active_robot];
+    console.log('\n\n')
 
     // switch running code & running_language
     game_configuration.user_code = game_configuration.user_code === game_configuration.user.code ? game_configuration.opponent.code : game_configuration.user.code
@@ -249,18 +250,21 @@ const end_round = (socket, round_movements, game_configuration) => {
   }
 }
 
-const end_game = (socket, game_configuration) => {
+const end_game = async (socket, game_configuration) => {
 
   if (game_configuration.test) {
     socket.emit('end test phase')
   } else {
-    console.log(game_configuration)
-    const { loser, winner } = game_configuration.active_robot.status === 'dead' ?
-      { loser: game_configuration.active_robot.robot_id, winner: game_configuration.opponent_robot.robot_id } :
-      { loser: game_configuration.opponent_robot.robot_id, winner: game_configuration.active_robot.robot_id }
+    const { loser_id, winner_id } = game_configuration.active_robot.status === 'dead' ?
+      { loser_id: game_configuration.active_robot.robot_id, winner_id: game_configuration.opponent_robot.robot_id } :
+      { loser_id: game_configuration.opponent_robot.robot_id, winner_id: game_configuration.active_robot.robot_id }
 
-    console.log('loser :' + loser)
-    console.log('winner :' + winner)
+    await users.change_points(loser_id, -1)
+    await users.change_points(winner_id, 1)
+
+
+
+
 
   }
 }

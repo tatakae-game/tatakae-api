@@ -23,19 +23,21 @@ export default (io) => {
         game_configuration = await game_service.start_game(socket)
 
       }
-
-      console.log(game_configuration.running_language + " " + game_configuration.test)
+      console.log(game_configuration)
 
       game_service.emit_game_start(socket, game_configuration)
       game_service.emit_robot_spawn(socket, game_configuration)
       let turn = game_constants.END_TURN
+      const game_actions = []
 
       // each turn is affected to robot, meaning turn should be X 2
       while (turn > 0 && !game_configuration.all_killed) {
-        const round_actions = await game_service.run_round(game_configuration.active_robot, game_configuration.user_code, game_configuration.opponent_robot, game_configuration.map, game_configuration.running_language)
-        game_service.end_round(socket, round_actions, game_configuration)
+        const round = await game_service.run_round(game_configuration.active_robot, game_configuration.user_code, game_configuration.opponent_robot, game_configuration.map, game_configuration.running_language)
+        game_service.end_round(socket, round, game_configuration)
+        game_actions.push(...round.actions)
         turn -= 1
       }
+      console.log(game_actions)
 
       game_service.end_game(socket, game_configuration)
 
