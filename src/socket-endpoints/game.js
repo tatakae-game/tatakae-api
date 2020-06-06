@@ -24,6 +24,8 @@ export default (io) => {
 
       }
 
+      console.log(game_configuration.running_language + " " + game_configuration.test)
+
       game_service.emit_game_start(socket, game_configuration)
       game_service.emit_robot_spawn(socket, game_configuration)
       let turn = game_constants.END_TURN
@@ -36,6 +38,8 @@ export default (io) => {
       }
 
       game_service.end_game(socket, game_configuration)
+
+      socket.disconnect(true)
 
     } catch (e) {
       console.log(e)

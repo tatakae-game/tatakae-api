@@ -124,6 +124,7 @@ describe('update_robot()', () => {
 
       const robot_copy = new game_classes.Robot('default', map, user_ids[0])
       const opponent_copy = new game_classes.Robot('default', map, user_ids[1])
+      robot_copy.orientation = 'down'
 
       opponent_copy.position = { x: 0, y: 1 }
       opponent_copy.hp = 1
@@ -148,6 +149,7 @@ describe('update_robot()', () => {
       opponent.hp = 1
 
       const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+      robot_copy.orientation = 'down'
       const opponent_copy = new game_classes.Robot('default', map, user_ids[1])
 
       opponent_copy.position = { x: 0, y: 1 }
@@ -158,7 +160,7 @@ describe('update_robot()', () => {
       robot_copy.hit()
       robot_copy.clockwise_rotation()
 
-      assert.equal(robot_copy.orientation, 'right')
+      assert.equal(robot_copy.orientation, 'left')
 
       assert.equal(robot.orientation, 'up')
 
@@ -180,6 +182,7 @@ describe('update_robot()', () => {
 
       const robot_copy = new game_classes.Robot('default', map, user_ids[0])
       const opponent_copy = new game_classes.Robot('default', map, user_ids[1])
+      robot_copy.orientation = 'down'
 
       opponent_copy.position = { x: 0, y: 1 }
       opponent_copy.hp = 1
@@ -233,6 +236,7 @@ describe('update_robot()', () => {
 
       // affect map to active robot
       const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+      robot_copy.orientation = 'down'
 
       // Check if setup is right
       assert.equal(map2.has_obstacle({ x: 0, y: 1 }), true)
@@ -261,6 +265,7 @@ describe('update_robot()', () => {
       map.set_enemy_robots([opponent])
 
       const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+      robot_copy.orientation = 'down'
 
       robot_copy.hit()
 
@@ -281,6 +286,7 @@ describe('update_robot()', () => {
 
 
       const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+      robot_copy.orientation = 'down'
       const opponent_copy = new game_classes.Robot('default', map, user_ids[1])
       opponent_copy.position = { x: 0, y: 1 }
 
@@ -490,7 +496,7 @@ describe('get_first_free_tile()', () => {
 
     const result = game_service.get_first_free_tile(side, map)
     assert.equal(result.x, 0)
-    assert.equal(result.y, 0)
+    assert.equal(result.y, map.square_size - 1)
   })
 
 
@@ -502,7 +508,7 @@ describe('get_first_free_tile()', () => {
     const side = 'up'
     const result = game_service.get_first_free_tile(side, map)
     assert.equal(result.x, 1)
-    assert.equal(result.y, map.square_size - 1)
+    assert.equal(result.y, 0)
   })
 
   it('should go on second line if first line is full of obstacles', () => {
@@ -515,6 +521,6 @@ describe('get_first_free_tile()', () => {
     const side = 'up'
     const result = game_service.get_first_free_tile(side, map)
     assert.equal(result.x, 0)
-    assert.equal(result.y, map.square_size - 2)
+    assert.equal(result.y, 1)
   })
 })

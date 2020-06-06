@@ -290,10 +290,15 @@ const generate_test_game_config = async (socket, code, language) => {
 
   randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
 
-  if (socket.used_language) {
-    game_config.user.selected_language = socket.selected_language
+  if (socket.handshake.query.running_language) {
+    game_config.user.running_language = socket.running_language
+    game_config.opponent.running_language = socket.running_language
+  } else {
+    game_config.user.running_language = 'js'
+    game_config.opponent.running_language = 'js'
   }
 
+  game_config.running_language = game_config.user.running_language
   game_config.all_killed = false
   game_config.test = true
 
@@ -353,30 +358,6 @@ const get_first_free_tile = (side, map) => {
   let tile_address = {}
   switch (side) {
     case 'up':
-      tile_address = { x: 0, y: map.square_size - 1, }
-      while (map.has_obstacle(tile_address)) {
-        tile_address.x++
-        if (tile_address.x >= map.square_size) {
-          tile_address.y--
-          tile_address.x = 0
-        }
-      }
-
-      break
-
-    case 'right':
-
-      tile_address = { x: map.square_size - 1, y: map.square_size - 1, }
-      while (map.has_obstacle(tile_address)) {
-        tile_address.y--
-        if (tile_address.y < 0) {
-          tile_address.x--
-          tile_address.y = map.square_size - 1
-        }
-      }
-      break
-
-    case 'down':
       tile_address = { x: 0, y: 0, }
       while (map.has_obstacle(tile_address)) {
         tile_address.x++
@@ -385,15 +366,39 @@ const get_first_free_tile = (side, map) => {
           tile_address.x = 0
         }
       }
+
+      break
+
+    case 'right':
+
+      tile_address = { x: map.square_size - 1, y: 0, }
+      while (map.has_obstacle(tile_address)) {
+        tile_address.y++
+        if (tile_address.y >= map.square_size) {
+          tile_address.x--
+          tile_address.y = 0
+        }
+      }
+      break
+
+    case 'down':
+      tile_address = { x: 0, y: map.square_size - 1, }
+      while (map.has_obstacle(tile_address)) {
+        tile_address.x++
+        if (tile_address.x >= map.square_size) {
+          tile_address.y--
+          tile_address.x = 0
+        }
+      }
       break
 
     case 'left':
-      tile_address = { x: 0, y: map.square_size - 1, }
+      tile_address = { x: 0, y: 0, }
       while (map.has_obstacle(tile_address)) {
-        tile_address.y--
-        if (tile_address.y < 0) {
+        tile_address.y++
+        if (tile_address.y > map.square_size) {
           tile_address.x++
-          tile_address.y = map.square_size - 1
+          tile_address.y = 0
         }
       }
 

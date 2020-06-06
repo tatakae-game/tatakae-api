@@ -437,6 +437,7 @@ describe('check()', () => {
     robot.orientation = 'up'
     robot.position = { x: 3, y: 3 }
     robot.check()
+    console.log(robot.memory_map)
   })
 
   it.skip('should not update anything if some of the checked tiles are OOB', () => {
@@ -484,7 +485,7 @@ describe('hit()', () => {
 
     const opponent = new game_classes.Robot('default', map, user_ids[0])
     const initial_hp = opponent.hp
-    opponent.position = { x: 3, y: 4 }
+    opponent.position = { x: 3, y: 2 }
 
     map.set_enemy_robots([opponent])
 
@@ -500,55 +501,33 @@ describe('hit()', () => {
 
     robot.position = { x: 3, y: 3 }
     const index = map.get_index_by_address(robot.position.x, robot.position.y)
-    const obstacle_index = map.get_index_by_address(robot.position.x, robot.position.y + 1)
+    const obstacle_index = map.get_index_by_address(robot.position.x, robot.position.y - 1)
     robot.orientation = 'up'
 
     map.layers.obstacles[obstacle_index] = 'mountain'
 
-    assert.equal(map.has_obstacle({ x: robot.position.x, y: robot.position.y + 1 }), true)
+    assert.equal(map.has_obstacle({ x: robot.position.x, y: robot.position.y - 1 }), true)
     robot.hit()
-    assert.equal(map.has_obstacle({ x: robot.position.x, y: robot.position.y + 1 }), false)
+    assert.equal(map.has_obstacle({ x: robot.position.x, y: robot.position.y - 1 }), false)
   })
 
   it.skip('should update robot actions list', () => {
 
-  })
-
-
-  describe('get_memorized_tiles()', () => {
-    it('should return robot memorized tiles', () => {
-      const field = game_services.generate_field()
-      const map = new game_classes.Map(field)
-      const robot = new game_classes.Robot('default', map, user_ids[0])
-
-      robot.check()
-      assert.equal(robot.get_memorized_tiles().length, 6)
-    })
-
-    it.skip('should not return any tiles containing "not_discovered"', () => {
-
-    })
   })
 })
 
-describe('eat()', () => {
-  it.skip('should restore robot hp on scrubs on the tile', () => {
+describe('get_memorized_tiles()', () => {
+  it('should return robot memorized tiles', () => {
+    const field = game_services.generate_field()
+    const map = new game_classes.Map(field)
+    const robot = new game_classes.Robot('default', map, user_ids[0])
+    robot.orientation = 'down'
 
+    robot.check()
+    assert.equal(robot.get_memorized_tiles().length, 6)
   })
 
-  it.skip('should not restore robot hp if no scrubs on the tile', () => {
-
-  })
-
-  it.skip('should not restore robot hp if robot hp are full', () => {
-
-  })
-
-  it.skip('should consume scrubs on action', () => {
-
-  })
-
-  it.skip('should update robot actions list', () => {
+  it.skip('should not return any tiles containing "not_discovered"', () => {
 
   })
 })
@@ -812,7 +791,7 @@ describe('map', () => {
 
       const tiles = map.get_hitted_tiles(robot)
 
-      assert.equal(tiles[0].y, robot.position.y - 1)
+      assert.equal(tiles[0].y, robot.position.y + 1)
       assert.equal(tiles[0].x, robot.position.x - 1)
       assert.equal(tiles[1].x, robot.position.x)
       assert.equal(tiles[2].x, robot.position.x + 1)
