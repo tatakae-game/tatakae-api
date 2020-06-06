@@ -30,7 +30,7 @@ function generate_obstacle(size) {
 
 function fill_addresses(size) {
   const tiles = []
-  for (let i = size - 1; i >= 0; i--) {
+  for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
       tiles.push({ x: j, y: i })
     }
@@ -245,7 +245,7 @@ const end_round = (socket, round_movements, game_configuration) => {
 
     // switch running code & running_language
     game_configuration.user_code = game_configuration.user_code === game_configuration.user.code ? game_configuration.opponent.code : game_configuration.user.code
-    game_configuration.selected_language = game_configuration.selected_language === game_configuration.user.selected_language ? game_configuration.opponent.selected_language : game_configuration.user.selected_languages
+    game_configuration.running_language = game_configuration.running_language === game_configuration.user.running_language ? game_configuration.opponent.running_language : game_configuration.user.running_language
   }
 }
 
@@ -255,6 +255,12 @@ const end_game = (socket, game_configuration) => {
     socket.emit('end test phase')
   } else {
     console.log(game_configuration)
+    const { loser, winner } = game_configuration.active_robot.status === 'dead' ?
+      { loser: game_configuration.active_robot.robot_id, winner: game_configuration.opponent_robot.robot_id } :
+      { loser: game_configuration.opponent_robot.robot_id, winner: game_configuration.active_robot.robot_id }
+
+    console.log('loser :' + loser)
+    console.log('winner :' + winner)
 
   }
 }
@@ -308,9 +314,11 @@ const start_game = async (socket) => {
 
   randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
 
-  if (socket.used_language) {
-    game_config.user.selected_language = socket.selected_language
+  if (socket.running_language) {
+    game_config.user.running_language = socket.running_language
   }
+
+  game_config.running_language = game_config.user.running_language
 
   game_config.all_killed = false
 

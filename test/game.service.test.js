@@ -307,6 +307,7 @@ describe('update_robot()', () => {
       const opponent = new game_classes.Robot('default', map, user_ids[1])
 
       const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+      robot_copy.orientation = 'down'
 
       robot_copy.jump()
 
@@ -332,6 +333,7 @@ describe('update_robot()', () => {
 
 
       const robot_copy = new game_classes.Robot('default', map, user_ids[0])
+      robot_copy.orientation = 'down'
       const opponent_copy = new game_classes.Robot('default', map, user_ids[1])
       opponent_copy.position = { x: 0, y: 2 }
 

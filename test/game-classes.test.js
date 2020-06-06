@@ -100,6 +100,7 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.battery = 6
       robot.position = { x: 0, y: 0 }
+      robot.orientation = 'down'
       robot.walk(3)
 
       assert.equal(robot.position.x, 0)
@@ -127,7 +128,7 @@ describe('robot', () => {
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
       const robot = new game_classes.Robot('default', map, user_ids[0])
-      robot.orientation = 'up'
+      robot.orientation = 'down'
       robot.position = { x: 0, y: 0 }
       const memory_index = map.get_index_by_address(robot.position.x, robot.position.y + 1)
 
@@ -293,13 +294,13 @@ describe('robot', () => {
       map.layers.obstacles = Array(map.square_size * map.square_size).fill(null)
 
       const robot = new game_classes.Robot('default', map, user_ids[0])
-      robot.orientation = 'right'
+      robot.orientation = 'down'
       robot.position = { x: 0, y: 0 }
       const original_position = robot.position
       robot.jump()
 
-      assert.equal(robot.position.x, original_position.x + 2)
-      assert.equal(robot.position.y, original_position.y)
+      assert.equal(robot.position.x, original_position.x)
+      assert.equal(robot.position.y, original_position.y + 2)
     })
 
     it('should not jump if energy < 4', () => {
@@ -832,8 +833,8 @@ describe('map', () => {
       const tiles = map.get_jumped_tiles(robot)
 
       assert.equal(tiles[0].x, robot.position.x)
-      assert.equal(tiles[0].y, robot.position.y - 2)
-      assert.equal(tiles[1].y, robot.position.y - 1)
+      assert.equal(tiles[0].y, robot.position.y + 2)
+      assert.equal(tiles[1].y, robot.position.y + 1)
       assert.equal(tiles[2].y, robot.position.y)
 
 
