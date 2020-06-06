@@ -407,35 +407,11 @@ class Map {
     const tiles = []
 
     switch (robot.orientation) {
+
       case 'up':
         let tile
         for (let i = 0; i < 3; i++) {
           if (i !== 0) {
-            for (let j = x - i; j <= x + i; j++) {
-              tile = ({ x: j, y: y + i + 1 })
-
-              if (this.is_inbound(tile.x, tile.y)) {
-                tiles.push(tile)
-              }
-            }
-          } else {
-            tile = ({ x, y: y + 1 })
-
-            if (this.is_inbound(tile.x, tile.y)) {
-              tiles.push(tile)
-            }
-          }
-
-        }
-
-        break
-
-      case 'down':
-
-        for (let i = 0; i < 3; i++) {
-          let tile
-          if (i !== 0) {
-
             for (let j = x - i; j <= x + i; j++) {
               tile = ({ x: j, y: y - i - 1 })
 
@@ -444,7 +420,29 @@ class Map {
               }
             }
           } else {
-            tile = ({ x, y: y - i - 1 })
+            tile = ({ x, y: y - 1 })
+
+            if (this.is_inbound(tile.x, tile.y)) {
+              tiles.push(tile)
+            }
+          }
+        }
+        break
+
+      case 'down':
+        for (let i = 0; i < 3; i++) {
+          let tile
+          if (i !== 0) {
+
+            for (let j = x - i; j <= x + i; j++) {
+              tile = ({ x: j, y: y + i + 1 })
+
+              if (this.is_inbound(tile.x, tile.y)) {
+                tiles.push(tile)
+              }
+            }
+          } else {
+            tile = ({ x, y: y + i + 1 })
 
             if (this.is_inbound(tile.x, tile.y)) {
               tiles.push(tile)
@@ -454,7 +452,6 @@ class Map {
         break
 
       case 'left':
-
         for (let i = 0; i < 3; i++) {
           let tile
           if (i !== 0) {
@@ -475,7 +472,6 @@ class Map {
         break
 
       case 'right':
-
         for (let i = 0; i < 3; i++) {
           if (i !== 0) {
 
@@ -495,7 +491,6 @@ class Map {
           }
         }
         break
-
     }
 
     return tiles
@@ -512,7 +507,7 @@ class Map {
     switch (robot.orientation) {
       case 'up':
         for (let i = -1; i < 2; i++) {
-          const address = { x: x + i, y: y + 1 }
+          const address = { x: x + i, y: y - 1 }
           if (this.is_inbound(address.x, address.y)) {
             tiles.push(address)
           }
@@ -521,7 +516,7 @@ class Map {
 
       case 'right':
         for (let i = -1; i < 2; i++) {
-          const address = { x: x + 1, y: y - i }
+          const address = { x: x + 1, y: y + i }
           if (this.is_inbound(address.x, address.y)) {
             tiles.push(address)
           }
@@ -530,7 +525,7 @@ class Map {
 
       case 'down':
         for (let i = -1; i < 2; i++) {
-          const address = { x: x + i, y: y - 1 }
+          const address = { x: x + i, y: y + 1 }
           if (this.is_inbound(address.x, address.y)) {
             tiles.push(address)
           }
@@ -539,7 +534,7 @@ class Map {
 
       case 'left':
         for (let i = -1; i < 2; i++) {
-          const address = { x: x - 1, y: y - i }
+          const address = { x: x - 1, y: y + i }
           if (this.is_inbound(address.x, address.y)) {
             tiles.push(address)
           }
