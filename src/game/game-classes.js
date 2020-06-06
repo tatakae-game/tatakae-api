@@ -341,8 +341,8 @@ class Map {
     const position = robot.position
     switch (robot.orientation) {
       case 'up':
-        if (!this.has_obstacle({ x: position.x, y: position.y + 1 }) && this.is_inbound(position.x, position.y + 1)) {
-          return { x: position.x, y: position.y + 1 }
+        if (!this.has_obstacle({ x: position.x, y: position.y - 1 }) && this.is_inbound(position.x, position.y - 1)) {
+          return { x: position.x, y: position.y - 1 }
         }
         break
 
@@ -353,8 +353,8 @@ class Map {
         break
 
       case 'down':
-        if (!this.has_obstacle({ x: position.x, y: position.y - 1 }) && this.is_inbound(position.x, position.y - 1)) {
-          return { x: position.x, y: position.y - 1 }
+        if (!this.has_obstacle({ x: position.x, y: position.y + 1 }) && this.is_inbound(position.x, position.y + 1)) {
+          return { x: position.x, y: position.y + 1 }
         }
         break
 
@@ -577,7 +577,7 @@ class Map {
     switch (robot.orientation) {
       case 'up':
         for (let i = 2; i >= 0; i--) {
-          const address = { x, y: y + i }
+          const address = { x, y: y - i }
           if (this.is_inbound(address.x, address.y)) {
             tiles.push(address)
           }
@@ -595,7 +595,7 @@ class Map {
 
       case 'down':
         for (let i = 2; i >= 0; i--) {
-          const address = { x, y: y - i }
+          const address = { x, y: y + i }
           if (this.is_inbound(address.x, address.y)) {
             tiles.push(address)
           }

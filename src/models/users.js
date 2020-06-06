@@ -12,7 +12,8 @@ export const model = db.model('User', {
   score: { type: Number, default: 0, },
   created: { type: Date, default: Date.now, },
   robot: { type: String, default: 'default' },
-  code: {type : String, default: ''}
+  code: { type: String, default: '' },
+  running_language: { type: String, default: 'js' },
 })
 
 export const username_regex = XRegExp('^[\\p{L}0-9_]{5,20}$');
