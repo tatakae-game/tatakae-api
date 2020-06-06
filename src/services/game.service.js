@@ -81,8 +81,10 @@ function sanitize_game_start(game_configuration) {
 }
 
 function reupdate_memory_map(robot, action) {
-  for (const tile_to_update of action.tiles_checked) {
-    robot.memory_map[robot.map.get_index_by_address(tile_to_update.addresses.x, tile_to_update.addresses.y)] = tile_to_update
+  if (action.tiles_checked) {
+    for (const tile_to_update of action.tiles_checked) {
+      robot.memory_map[robot.map.get_index_by_address(tile_to_update.addresses.x, tile_to_update.addresses.y)] = tile_to_update
+    }
   }
 }
 
@@ -98,6 +100,7 @@ function resolve_action(action, robot) {
     case 'jump':
       robot.position = action.new_position
       resolve_events(action.events, robot.map)
+      reupdate_memory_map(robot, action)
       break
 
     case 'check':
@@ -215,7 +218,6 @@ const encapsulate_user_code = async (code, robot, opponent_robot, map) => {
 
 const run_round = async (robot, user_code, opponent, map, language) => {
   if (language === 'js') {
-    console.log('language is js')
     const robot_turn_code = await encapsulate_user_code(user_code, robot, opponent, map)
     return await wandbox.execute_code(robot_turn_code)
   } else if (language === 'san') {
@@ -252,6 +254,7 @@ const end_game = (socket, game_configuration) => {
   if (game_configuration.test) {
     socket.emit('end test phase')
   } else {
+    console.log(game_configuration)
 
   }
 }
