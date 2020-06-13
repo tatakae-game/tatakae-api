@@ -264,7 +264,16 @@ const end_game = async (socket, game_configuration) => {
 
     await register_game(game_configuration, winner_id, loser_id)
 
+    emit_end_game(socket, winner_id, loser_id)
+
   }
+}
+
+function emit_end_game(socket, winner_id, loser_id) {
+  socket.emit('end game', {
+    winner: winner_id,
+    loser: loser_id,
+  })
 }
 
 async function register_game(game_conf, winner_id, loser_id) {
