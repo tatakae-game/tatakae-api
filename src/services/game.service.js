@@ -5,6 +5,7 @@ import * as game_constants from '../constants/game'
 import * as wandbox from './wandbox.service'
 import game_classes from '../game/game-classes'
 import * as users from '../models/users'
+import * as games_models from '../models/game'
 
 function fill_ground(type, size) {
   return Array(size * size).fill(type)
@@ -242,7 +243,6 @@ const end_round = (socket, round_movements, game_configuration) => {
 
     // switch active robot
     [game_configuration.active_robot, game_configuration.opponent_robot] = [game_configuration.opponent_robot, game_configuration.active_robot];
-    console.log('\n\n')
 
     // switch running code & running_language
     game_configuration.user_code = game_configuration.user_code === game_configuration.user.code ? game_configuration.opponent.code : game_configuration.user.code
@@ -262,7 +262,17 @@ const end_game = async (socket, game_configuration) => {
     await users.change_points(loser_id, -1)
     await users.change_points(winner_id, 1)
 
+    await register_game(game_configuration, winner_id, loser_id)
+
   }
+}
+
+async function register_game(game_conf, winner_id, loser_id) {
+  const game = await games_models.model.create({
+    winner: winner_id,
+    participants: [winner_id, loser_id],
+    actions: game_conf.actions,
+  })
 }
 
 const generate_test_game_config = async (socket, code, language) => {
