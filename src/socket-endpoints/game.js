@@ -37,6 +37,7 @@ export default (io) => {
         turn -= 1
       }
 
+      game_configuration.actions = game_actions
       game_service.end_game(socket, game_configuration)
 
       socket.disconnect(true)

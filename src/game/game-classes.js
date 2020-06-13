@@ -239,7 +239,7 @@ class Robot {
       robot_id: this.robot_id,
       events: [
         {
-          event: 'lay-scraps',
+          name: 'lay-scraps',
           address: this.position,
         }
       ]
@@ -647,7 +647,7 @@ class Map {
     } else {
 
       action.events.push({
-        event: "destroy",
+        name: "destroy",
         obstacle: this.layers.obstacles[this.get_index_by_address(max_range_tile.x, max_range_tile.y)],
         address: max_range_tile,
       })
