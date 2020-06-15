@@ -9,8 +9,9 @@ import guard from '../middlewares/guard'
 
 import * as users from '../models/users'
 import * as games from '../models/game'
+import { isBoolean } from 'lodash'
 
-router.get('/games', async (req, res) => {
+router.get('/games', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const result = await games.model.find({ active: true })
 
@@ -28,7 +29,7 @@ router.get('/games', async (req, res) => {
   }
 })
 
-router.get('/games/disabled', async (req, res) => {
+router.get('/games/disabled', guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_GAME] }), async (req, res) => {
   try {
 
     const result = await games.model.find({ active: false })
@@ -47,7 +48,7 @@ router.get('/games/disabled', async (req, res) => {
   }
 })
 
-router.get('/games/user/:id', async (req, res) => {
+router.get('/games/user/:id', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const user_id = req.params.id
     const result = await games.model.find({ participants: user_id, active: true })
@@ -66,8 +67,7 @@ router.get('/games/user/:id', async (req, res) => {
   }
 })
 
-router.get('/games/:id/winrate', async (req, res) => {
-  console.log("coucou")
+router.get('/games/:id/winrate', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const id = req.params.id
     const result = await games.get_win_rate(id)
@@ -86,11 +86,20 @@ router.get('/games/:id/winrate', async (req, res) => {
   }
 })
 
-router.put('/games/status', async (req, res) => {
+router.put('/games/status', guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_GAME] }), async (req, res) => {
   try {
     const { id, status } = req.body || {}
 
     const result = await games.model.findById(id)
+
+    if (!isBoolean(status)) {
+      return res.status(405)
+        .json({
+          success: false,
+          errors: ['status need to be a boolean']
+        })
+    }
+
     result.active = status
     result.save()
 
@@ -107,7 +116,7 @@ router.put('/games/status', async (req, res) => {
   }
 })
 
-router.get('/games/:id', async (req, res) => {
+router.get('/games/:id', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const id = req.params.id
     const result = await games.model.find({ _id: id, active: true })
