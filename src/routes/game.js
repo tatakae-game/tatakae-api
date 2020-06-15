@@ -86,6 +86,27 @@ router.get('/games/:id/winrate', async (req, res) => {
   }
 })
 
+router.put('/games/status', async (req, res) => {
+  try {
+    const { id, status } = req.body || {}
+
+    const result = await games.model.findById(id)
+    result.active = status
+    result.save()
+
+    res.send({
+      success: true,
+    })
+
+  } catch {
+    res.status(500)
+      .json({
+        success: false,
+        errors: ['An error occured.'],
+      })
+  }
+})
+
 router.get('/games/:id', async (req, res) => {
   try {
     const id = req.params.id
