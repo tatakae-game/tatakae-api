@@ -13,7 +13,7 @@ import { ErrorsGenerator } from '../utils/errors'
 import * as users from '../models/users'
 import * as groups_permisions from '../models/groups'
 import * as games from '../models/game'
-import { check_errors } from '../services/code.service'
+import { check_errors, resolve_files } from '../services/code.service'
 
 const user_schema = Joi.object().keys({
   username: Joi.string().regex(users.username_regex).required(),
@@ -115,10 +115,13 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
     const user = await users.model.findById(req.params.id)
 
     if (user) {
-      const errors = check_errors(files)
+      const errors = check_include_errors(files)
       if (errors.length === 0) {
+        resolve_files(files)
+
         user.js_code = files
         user.save()
+
 
         return res.send({
           success: "true",

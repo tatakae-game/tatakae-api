@@ -165,7 +165,7 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'up'
 
-      robot.clockwise_rotation()
+      robot.turn_right()
       assert.equal(robot.orientation, 'right')
     })
 
@@ -174,7 +174,7 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
-      robot.clockwise_rotation()
+      robot.turn_right()
       assert.equal(robot.orientation, 'up')
     })
 
@@ -183,9 +183,9 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
-      robot.clockwise_rotation()
-      robot.clockwise_rotation()
-      robot.clockwise_rotation()
+      robot.turn_right()
+      robot.turn_right()
+      robot.turn_right()
 
       assert.equal(robot.orientation, 'down')
 
@@ -196,7 +196,7 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
-      robot.clockwise_rotation()
+      robot.turn_right()
 
       assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - 1)
 
@@ -208,7 +208,7 @@ describe('robot', () => {
       robot.battery = 0
       robot.orientation = 'left'
 
-      robot.clockwise_rotation()
+      robot.turn_right()
       assert.equal(robot.orientation, 'left')
       assert.equal(robot.round_movements.actions[0].name, 'OOE')
     })
@@ -218,18 +218,18 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
-      robot.clockwise_rotation()
+      robot.turn_right()
       assert.equal(robot.round_movements.actions[0].name, 'turn-right')
     })
   })
 
-  describe('reverse_clockwise_rotation()', () => {
+  describe('turn_left()', () => {
     it('should update robot orientation with right next orientation', () => {
       const map = { square_size: 5 }
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'down'
 
-      robot.reverse_clockwise_rotation()
+      robot.turn_left()
       assert.equal(robot.orientation, 'right')
     })
 
@@ -238,7 +238,7 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'up'
 
-      robot.reverse_clockwise_rotation()
+      robot.turn_left()
       assert.equal(robot.orientation, 'left')
     })
 
@@ -247,9 +247,9 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
-      robot.reverse_clockwise_rotation()
-      robot.reverse_clockwise_rotation()
-      robot.reverse_clockwise_rotation()
+      robot.turn_left()
+      robot.turn_left()
+      robot.turn_left()
 
       assert.equal(robot.orientation, 'up')
 
@@ -260,7 +260,7 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
-      robot.reverse_clockwise_rotation()
+      robot.turn_left()
 
       assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - 1)
 
@@ -272,7 +272,7 @@ describe('robot', () => {
       robot.battery = 0
       robot.orientation = 'left'
 
-      robot.reverse_clockwise_rotation()
+      robot.turn_left()
       assert.equal(robot.orientation, 'left')
       assert.equal(robot.round_movements.actions[0].name, 'OOE')
     })
@@ -282,7 +282,7 @@ describe('robot', () => {
       const robot = new game_classes.Robot('default', map, user_ids[0])
       robot.orientation = 'left'
 
-      robot.reverse_clockwise_rotation()
+      robot.turn_left()
       assert.equal(robot.round_movements.actions[0].name, 'turn-left')
     })
   })
@@ -619,7 +619,7 @@ describe('die()', () => {
 
     assert.equal(action.name, "die")
     assert.equal(action.robot_id, robot.robot_id)
-    assert.equal(action.events[0].event, 'lay-scraps')
+    assert.equal(action.events[0].name, 'lay-scraps')
     assert.equal(action.events[0].address.x, robot.position.x)
     assert.equal(action.events[0].address.y, robot.position.y)
   })
