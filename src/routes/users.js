@@ -12,6 +12,7 @@ import { ErrorsGenerator } from '../utils/errors'
 
 import * as users from '../models/users'
 import * as groups_permisions from '../models/groups'
+import * as games from '../models/game'
 
 const user_schema = Joi.object().keys({
   username: Joi.string().regex(users.username_regex).required(),
@@ -27,11 +28,13 @@ const user_schema = Joi.object().keys({
 })
 
 router.get('/users/me', guard({ auth: constants.AUTH }), async (req, res) => {
-  const user = await users.find_by_token(req.token)
+  const user = users.sanitize(await users.find_by_token(req.token))
+  const win_ratio = await games.get_win_rate(user._id)
 
+  user.win_ratio = win_ratio
   res.send({
     success: true,
-    profile: users.sanitize(user),
+    profile: user,
   })
 })
 
