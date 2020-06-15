@@ -13,6 +13,7 @@ import { ErrorsGenerator } from '../utils/errors'
 import * as users from '../models/users'
 import * as groups_permisions from '../models/groups'
 import * as games from '../models/game'
+import { check_errors } from '../services/code.service'
 
 const user_schema = Joi.object().keys({
   username: Joi.string().regex(users.username_regex).required(),
@@ -108,6 +109,42 @@ router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
   }
 })
 
+router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) => {
+  try {
+    const { files } = req.body || {}
+    const user = await users.model.findById(req.params.id)
+
+    if (user) {
+      const errors = check_errors(files)
+      if (errors.length === 0) {
+        user.js_code = files
+        user.save()
+
+        return res.send({
+          success: "true",
+        })
+
+      } else {
+        res.send({
+          success: "false",
+          errors,
+        })
+      }
+    } else {
+      res.status(400).json({
+        success: false,
+        error: ['The user does not exist.'],
+      })
+    }
+
+  } catch {
+    res.status(500).json({
+      success: false,
+      errors: ['An error occured'],
+    })
+  }
+})
+
 router.put('/users/:id', guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_ADMIN] }), schema({ body: user_schema }), async (req, res) => {
 
   try {
@@ -165,3 +202,4 @@ router.put('/users/:id', guard({ auth: constants.AUTH, permissions: [constants.P
     })
   }
 })
+
