@@ -15,9 +15,10 @@ export function check_errors(files) {
   }
 
   const missing_files = get_missing_files(files)
-
-  if (has_circular_inclusion(files)) {
-    errors.push('Circular inclusion detected')
+  if (missing_files.length !== 0) {
+    for(const missing_file of missing_files){
+      errors.push(`${missing_file} file does not exist`)
+    }
   }
 
   return errors
@@ -34,8 +35,17 @@ function get_missing_files(files) {
 
   for (const file of files) {
     const files_called = get_all_group_match(include_regex, file.code, 1)
-    
+
+    for (const file_name of files_called) {
+      if (!file_names.includes(file_name)) {
+        missing_files.push(file_name)
+      }
+    }
   }
+
+  console.log(missing_files)
+
+  return missing_files
 }
 
 /**
@@ -44,15 +54,4 @@ function get_missing_files(files) {
  */
 function has_one_entry_point(files) {
   return files.filter(file => file.is_entrypoint).length === 1
-}
-
-function get_included_file_name(file) {
-  const file_name_included = []
-
-}
-
-function has_circular_inclusion(files) {
-  for (const file in files) {
-
-  }
 }
