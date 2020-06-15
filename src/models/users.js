@@ -4,6 +4,12 @@ import db from '../db'
 
 import * as tokens from './tokens'
 
+export const File = db.Schema({
+  name: { type: String },
+  code: { type: String },
+  is_entrypoint: { type: Boolean, default: false }
+}, { _id: false })
+
 export const model = db.model('User', {
   username: { type: String, },
   email: { type: String, },
@@ -12,7 +18,8 @@ export const model = db.model('User', {
   score: { type: Number, default: 0, },
   created: { type: Date, default: Date.now, },
   robot: { type: String, default: 'default' },
-  code: { type: String, default: '' },
+  js_code: [{ type: File, default: null }],
+  san_code: { type: String, default: null },
   running_language: { type: String, default: 'js' },
 })
 
