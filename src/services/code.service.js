@@ -16,7 +16,7 @@ export function check_errors(files) {
 
   const missing_files = get_missing_files(files)
   if (missing_files.length !== 0) {
-    for(const missing_file of missing_files){
+    for (const missing_file of missing_files) {
       errors.push(`${missing_file} file does not exist`)
     }
   }
@@ -54,4 +54,13 @@ function get_missing_files(files) {
  */
 function has_one_entry_point(files) {
   return files.filter(file => file.is_entrypoint).length === 1
+}
+
+
+/**
+ * @param {[name: String, code: String]} files
+ * 
+ */
+function resolve_code(files) {
+  const entrypoint = 
 }
