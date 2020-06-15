@@ -1,4 +1,5 @@
 import db from '../db'
+import game from '../socket-endpoints/game'
 
 
 
@@ -42,4 +43,27 @@ export const model = db.model('Game', {
   participants: [{ type: String }],
   actions: [{ type: Action, default: null }],
   created: { type: Date, default: Date.now, },
+  active: { type: Boolean, default: true },
 })
+
+
+/**
+ * 
+ * @param {model} game 
+ */
+export function simplify(game) {
+  return {
+    id: game._id,
+    winner: game.winner,
+    particpants: game.participants,
+  }
+}
+
+export async function get_win_rate(user_id) {
+  const user_games = await model.find({ participants: user_id, active: true })
+
+  return {
+    games: user_games.length,
+    wins: user_games.filter(game => game.winner === user_id).length
+  }
+}
