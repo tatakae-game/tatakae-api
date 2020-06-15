@@ -61,6 +61,7 @@ function has_one_entry_point(files) {
  * @param {[name: String, code: String]} files
  * 
  */
-function resolve_code(files) {
-  const entrypoint = 
+export function resolve_files(files) {
+  const entrypoint = files.filter(file => file.is_entrypoint)
+  console.log(resolve_code)
 }

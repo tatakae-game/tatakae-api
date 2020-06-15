@@ -58,7 +58,7 @@ class Robot {
   /**
    * Robot actions
    */
-  clockwise_rotation() {
+  turn_right() {
     if (!this.is_running) {
       return
     }
@@ -79,7 +79,7 @@ class Robot {
     }
   }
 
-  reverse_clockwise_rotation() {
+  turn_left() {
     if (!this.is_running) {
       return
     }
