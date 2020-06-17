@@ -13,7 +13,7 @@ import { ErrorsGenerator } from '../utils/errors'
 import * as users from '../models/users'
 import * as groups_permisions from '../models/groups'
 import * as games from '../models/game'
-import { check_errors, resolve_files } from '../services/code.service'
+import { check_include_errors, resolve_files } from '../services/code.service'
 
 const user_schema = Joi.object().keys({
   username: Joi.string().regex(users.username_regex).required(),
