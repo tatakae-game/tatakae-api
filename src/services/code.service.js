@@ -1,6 +1,8 @@
 import { match } from "xregexp"
 import { get_all_group_match } from "./regex.service"
-
+import game_classes from '../game/game-classes'
+import { generate_field, encapsulate_user_code } from "./game.service"
+import { get_errors } from "./wandbox.service"
 
 const include_regex = /include ["'](\w*.js)["'];?/g
 
@@ -35,7 +37,6 @@ function get_missing_files(files) {
 
   for (const file of files) {
     const files_called = get_all_group_match(include_regex, file.code, 1)
-    console.log(files_called)
 
     for (const file of files_called) {
       if (!file_names.includes(file.selection)) {
@@ -87,4 +88,14 @@ export function resolve_files(files) {
   }
 
   return code
+}
+
+
+export async function try_code(files) {
+  const code = resolve_files(files)
+  const map = new game_classes.Map(generate_field())
+  const robot = new game_classes.Robot('default', map, 'Testor')
+  const opponent = new game_classes.Robot('default', map, 'Testor2')
+  const encapsulated_code = await encapsulate_user_code(code, robot, opponent, map)
+  return await get_errors(encapsulated_code)
 }

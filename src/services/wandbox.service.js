@@ -20,3 +20,15 @@ export async function execute_code(code) {
   }
 
 }
+
+export async function get_errors(code) {
+  try {
+    const res = await axios.post(wandbox_url, {
+      code,
+      compiler: "nodejs-head",
+    })
+    return res.data.program_error
+  } catch (e) {
+    console.log(e)
+  } 
+}
