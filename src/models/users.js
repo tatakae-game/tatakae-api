@@ -4,6 +4,12 @@ import db from '../db'
 
 import * as tokens from './tokens'
 
+const default_code = [{
+  name : 'index.js',
+  code : 'robot.walk(2); robot.turn_right()',
+  is_entrypoint: true
+}]
+
 export const File = db.Schema({
   name: { type: String },
   code: { type: String },
@@ -18,7 +24,7 @@ export const model = db.model('User', {
   score: { type: Number, default: 0, },
   created: { type: Date, default: Date.now, },
   robot: { type: String, default: 'default' },
-  js_code: [{ type: File, default: null }],
+  js_code: { type: [File], default: default_code },
   san_code: { type: String, default: null },
   running_language: { type: String, default: 'js' },
 })
