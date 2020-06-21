@@ -136,6 +136,7 @@ class Robot {
         this.round_movements.actions.push(movement)
       } else {
         this.out_of_energy()
+        return
       }
     }
   }

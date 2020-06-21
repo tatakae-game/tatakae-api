@@ -1,5 +1,3 @@
-
-
 export function get_all_group_match(regex, str, second_index) {
   const matching_group = []
   let m
