@@ -399,7 +399,6 @@ export {
   get_first_free_tile,
   update_robot,
   end_game,
-  sanitize_round_info,
   randomize_initial_robot_position,
   start_game,
   end_round,
