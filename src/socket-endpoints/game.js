@@ -15,13 +15,13 @@ export default (io) => {
   const nsp = io.of('/matchmaking').use(token_middlware)
 
   nsp.on('connection', async (socket) => {
+
     try {
       let game_configuration
       if (socket.handshake.query.test === 'true') {
-        game_configuration = await game_service.generate_test_game_config(socket, socket.handshake.query.code)
+        game_configuration = await game_service.generate_test_game_config(socket, socket.handshake.query.files)
       } else {
         game_configuration = await game_service.start_game(socket)
-
       }
 
       game_service.emit_game_start(socket, game_configuration)
@@ -31,9 +31,11 @@ export default (io) => {
 
       // each turn is affected to robot, meaning turn should be X 2
       while (turn > 0 && !game_configuration.all_killed) {
-        const round = await game_service.run_round(game_configuration.active_robot, game_configuration.user_code, game_configuration.opponent_robot, game_configuration.map, game_configuration.running_language)
-        game_service.end_round(socket, round, game_configuration)
-        game_actions.push(...round.actions)
+        const round_runner = game_configuration.runners.shift()
+        const round_actions = await round_runner.run(game_configuration.runners.map(runner => runner.robot))
+        game_configuration.runners.push(round_runner)
+        game_service.end_round(socket, round_actions, game_configuration)
+        game_actions.push(...round_actions.actions)
         turn -= 1
       }
 

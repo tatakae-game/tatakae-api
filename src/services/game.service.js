@@ -6,6 +6,8 @@ import * as wandbox from './wandbox.service'
 import game_classes from '../game/game-classes'
 import * as users from '../models/users'
 import * as games_models from '../models/game'
+import { JsRunner } from '../game/js-runner'
+import { SanRunner } from '../game/san-runner'
 
 function fill_ground(type, size) {
   return Array(size * size).fill(type)
@@ -75,8 +77,7 @@ function sanitize_robot_data(robot) {
 
 function sanitize_game_start(game_configuration) {
   return {
-    username: game_configuration.user.username,
-    opponent_username: game_configuration.opponent.username,
+    players: game_configuration.players,
     map: game_configuration.map,
   }
 }
@@ -160,71 +161,16 @@ function resolve_events(events, map) {
   }
 }
 
-const update_robot = (round, robot, opponent_robot) => {
+const update_robot = (round, robots) => {
   for (const action of round.actions) {
-    if (action.robot_id === robot.robot_id.toString()) {
-      resolve_action(action, robot)
-    } else {
-      resolve_action(action, opponent_robot)
-    }
+    const active_robot = robots.filter(robot => robot.robot_id == action.robot_id)[0]
+    resolve_action(action, active_robot)
+
 
     if (action.name === 'die') {
       return
     }
   }
-}
-
-
-
-function trim_class_file(class_file_string) {
-  const trimmed_string = class_file_string.replace(/export.*/, '')
-  return trimmed_string
-}
-
-const encapsulate_user_code = async (code, robot, opponent_robot, map) => {
-  const final_code_promise = new Promise((resolve, reject) => {
-    fs.readFile(path.resolve(__dirname, '../game/game-code.js'), (err, data) => {
-      if (err) {
-        return reject(err)
-      } else {
-        resolve(data)
-      }
-    })
-  })
-
-  const game_classes_promise = new Promise((resolve, reject) => {
-    fs.readFile(path.resolve(__dirname, '../game/game-classes.js'), (err, data) => {
-      if (err) {
-        return reject(err)
-      } else {
-        resolve(data)
-      }
-    })
-  })
-
-  let final_code = (await final_code_promise).toString()
-  let game_classes = (await game_classes_promise).toString()
-
-  final_code = final_code.replace('{{ game_classes }}', trim_class_file(game_classes))
-  final_code = final_code.replace('{{ user_robot_string }}', JSON.stringify(robot))
-  final_code = final_code.replace('{{ map_string }}', JSON.stringify(map))
-  final_code = final_code.replace('{{ opponent_robot_string }}', JSON.stringify(opponent_robot))
-
-
-  final_code = final_code.replace('{{ user_code }}', code)
-
-  return final_code
-
-}
-
-const run_round = async (robot, user_code, opponent, map, language) => {
-  if (language === 'js') {
-    const robot_turn_code = await encapsulate_user_code(user_code, robot, opponent, map)
-    return await wandbox.execute_code(robot_turn_code)
-  } else if (language === 'san') {
-    // TODO implement san round_movement get
-  }
-
 }
 
 /**
@@ -233,20 +179,13 @@ const run_round = async (robot, user_code, opponent, map, language) => {
  * @param {*} round_movements 
  * @param {*} game_configuration 
  */
-const end_round = (socket, round_movements, game_configuration) => {
-  update_robot(round_movements, game_configuration.active_robot, game_configuration.opponent_robot)
-  if (game_configuration.active_robot.status === 'dead' || game_configuration.opponent_robot.status === 'dead') {
+const end_round = (socket, actions, game_configuration) => {
+  update_robot(actions, game_configuration.runners.map(runner => runner.robot))
+  if (game_configuration.runners.filter(runner => runner.robot.status === 'alive').length <= 1) {
     game_configuration.all_killed = true
     end_game(socket, game_configuration)
   } else {
-    socket.emit('round actions', round_movements);
-
-    // switch active robot
-    [game_configuration.active_robot, game_configuration.opponent_robot] = [game_configuration.opponent_robot, game_configuration.active_robot];
-
-    // switch running code & running_language
-    game_configuration.user_code = game_configuration.user_code === game_configuration.user.code ? game_configuration.opponent.code : game_configuration.user.code
-    game_configuration.running_language = game_configuration.running_language === game_configuration.user.running_language ? game_configuration.opponent.running_language : game_configuration.user.running_language
+    socket.emit('round actions', actions)
   }
 }
 
@@ -255,50 +194,48 @@ const end_game = async (socket, game_configuration) => {
   if (game_configuration.test) {
     socket.emit('end test phase')
   } else {
-    const { loser_id, winner_id } = game_configuration.active_robot.status === 'dead' ?
-      { loser_id: game_configuration.active_robot.robot_id, winner_id: game_configuration.opponent_robot.robot_id } :
-      { loser_id: game_configuration.opponent_robot.robot_id, winner_id: game_configuration.active_robot.robot_id }
 
-    await users.change_points(loser_id, -1)
-    await users.change_points(winner_id, 1)
+    const winners = game_configuration.runners.filter(runner => runner.robot.status === 'alive')
+    const losers = game_configuration.runners.filter(runner => runner.robot.status === 'dead')
 
-    await register_game(game_configuration, winner_id, loser_id)
+    const winners_id = winners.map(winner => winner.robot.robot_id)
+    const losers_id = losers.map(loser => loser.robot.robot_id)
 
-    emit_end_game(socket, winner_id, loser_id)
+    for (const winner_id of winners_id) {
+      await users.change_points(winners_id, 1)
+    }
+
+    for (const loser_id of losers_id) {
+      await users.change_points(loser_id -1)
+    }
+
+    await register_game(game_configuration, winners_id, losers_id)
+
+    emit_end_game(socket, winners, losers_id)
 
   }
 }
 
-function emit_end_game(socket, winner_id, loser_id) {
+function emit_end_game(socket, winners, losers) {
   socket.emit('end game', {
-    winner: winner_id,
-    loser: loser_id,
+    winners: winners,
+    loser: losers,
   })
 }
 
-async function register_game(game_conf, winner_id, loser_id) {
+async function register_game(game_conf, winners, losers) {
   const game = await games_models.model.create({
-    winner: winner_id,
-    participants: [winner_id, loser_id],
+    winners,
+    participants: [...winners, ...losers],
     actions: game_conf.actions,
   })
 }
 
-const generate_test_game_config = async (socket, code, language) => {
+const generate_test_game_config = async (socket, files, language) => {
   const game_config = {
-    user: {
-      username: 'tester',
-      _id: 'user',
-      code,
-      robot: 'default'
-    }
-  }
-
-  game_config.opponent = {
-    username: 'opponent',
-    _id: 'opponent',
-    code,
-    robot: 'default'
+    player: [
+      {}
+    ]
   }
 
   game_config.map = new game_classes.Map(generate_field())
@@ -309,13 +246,7 @@ const generate_test_game_config = async (socket, code, language) => {
 
   randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
 
-  if (socket.handshake.query.running_language) {
-    game_config.user.running_language = socket.running_language
-    game_config.opponent.running_language = socket.running_language
-  } else {
-    game_config.user.running_language = 'js'
-    game_config.opponent.running_language = 'js'
-  }
+  socket.handshake.query.running_language
 
   game_config.running_language = game_config.user.running_language
   game_config.all_killed = false
@@ -324,25 +255,36 @@ const generate_test_game_config = async (socket, code, language) => {
   return game_config
 }
 
+async function get_players(token, map) {
+  const requesting_user = await users.find_by_token(token)
+  const opponent = await users.find_opponent(requesting_user)
+
+  return [requesting_user, opponent]
+}
+
+function generate_runners(players, map) {
+  const runners_queue = []
+
+  for (const player of players) {
+    if (player.running_language === 'js') {
+      runners_queue.push(new JsRunner(player, map))
+    } else if (player.running_language === 'san') {
+      runners_queue.push(new SanRunner())
+    }
+  }
+
+  return runners_queue
+}
+
 const start_game = async (socket) => {
+
   const game_config = {
-    user: await users.find_by_token(socket.token)
+    players: await get_players(socket.token),
   }
-
-  game_config.opponent = await users.find_opponent(game_config.user)
   game_config.map = new game_classes.Map(generate_field())
-  game_config.active_robot = new game_classes.Robot(game_config.user.robot, game_config.map, game_config.user._id)
-  game_config.opponent_robot = new game_classes.Robot(game_config.opponent.robot, game_config.map, game_config.opponent._id)
+  game_config.runners = generate_runners(game_config.players, game_config.map)
 
-  game_config.user_code = game_config.user.code
-
-  randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
-
-  if (socket.running_language) {
-    game_config.user.running_language = socket.running_language
-  }
-
-  game_config.running_language = game_config.user.running_language
+  randomize_initial_robot_position(game_config.runners.map(runners => runners.robot), game_config.map)
 
   game_config.all_killed = false
 
@@ -350,23 +292,19 @@ const start_game = async (socket) => {
 
 }
 
-function generate_spawn_actions(robot, opponent) {
+function generate_spawn_actions(robots) {
   return {
-    actions: [
-      {
+    actions: robots.map(
+      robot => ({
         name: 'spawn',
-        unit: sanitize_robot_data(robot),
-      },
-      {
-        name: 'spawn',
-        unit: sanitize_robot_data(opponent),
-      }
-    ]
+        unit: robot
+      })
+    )
   }
 }
 
 const emit_robot_spawn = (socket, game_configuration) => {
-  socket.emit('spawn', generate_spawn_actions(game_configuration.active_robot, game_configuration.opponent_robot))
+  socket.emit('spawn', generate_spawn_actions(game_configuration.runners.map(runner => runner.robot)))
 }
 
 const sanitize_round_info = (user_round, opponent_round) => {
@@ -428,25 +366,23 @@ const get_first_free_tile = (side, map) => {
 
 }
 
-const randomize_initial_robot_position = (robot, enemy_robot, map) => {
+const randomize_initial_robot_position = (robots, map) => {
   const robot_side = game_classes.Map.directions[Math.floor(Math.random() * Math.floor(game_classes.Map.directions.length))]
   const opponent_side = game_classes.Map.directions[(game_classes.Map.directions.indexOf(robot_side) + 2) % 4]
-  robot.position = get_first_free_tile(robot_side, map)
-  robot.orientation = opponent_side
-  enemy_robot.position = get_first_free_tile(opponent_side, map)
-  enemy_robot.orientation = robot_side
+  robots[0].position = get_first_free_tile(robot_side, map)
+  robots[0].orientation = opponent_side
+  robots[1].position = get_first_free_tile(opponent_side, map)
+  robots[1].orientation = robot_side
 }
 
 export {
   generate_field,
   get_first_free_tile,
-  encapsulate_user_code,
   update_robot,
   end_game,
   sanitize_round_info,
   randomize_initial_robot_position,
   start_game,
-  run_round,
   end_round,
   emit_game_start,
   emit_robot_spawn,
