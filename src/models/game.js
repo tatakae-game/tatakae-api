@@ -39,7 +39,7 @@ export const Action = new db.Schema({
 }, { _id: false })
 
 export const model = db.model('Game', {
-  winner: { type: String },
+  winners: { type: [String] },
   participants: [{ type: String }],
   actions: [{ type: Action, default: null }],
   created: { type: Date, default: Date.now, },
