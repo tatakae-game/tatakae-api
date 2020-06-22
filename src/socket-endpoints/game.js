@@ -19,7 +19,7 @@ export default (io) => {
     try {
       let game_configuration
       if (socket.handshake.query.test === 'true') {
-        game_configuration = await game_service.generate_test_game_config(socket, socket.handshake.query.files)
+        game_configuration = await game_service.generate_test_game_config(socket, socket.handshake.query.code, socket.handshake.query.language)
       } else {
         game_configuration = await game_service.start_game(socket)
       }
