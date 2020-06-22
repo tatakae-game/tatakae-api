@@ -231,24 +231,48 @@ async function register_game(game_conf, winners, losers) {
   })
 }
 
-const generate_test_game_config = async (socket, files, language) => {
+const generate_test_game_config = async (socket, code, language) => {
   const game_config = {
-    player: [
-      {}
+    players: [
+      {
+        username: 'testor',
+        _id: 'testor',
+        robot: 'default',
+        running_language: language
+      },
+      {
+        username: 'opponent',
+        _id: 'opponent',
+        robot: 'default',
+        running_language: language
+      }
     ]
   }
 
+  const files = [
+    {
+      name: 'test.js',
+      code,
+      is_entrypoint: true
+     }
+  ]
+
+  if(language === 'js'){
+    game_config.players[0].js_code = files
+    game_config.players[1].js_code = files
+  } else if (language === 'san') {
+    game_config.players[0].san_code = files
+    game_config.players[1].san_code = files
+  } else {
+    game_config.players[0].js_code = files
+    game_config.players[1].js_code = files
+  }
+
   game_config.map = new game_classes.Map(generate_field())
-  game_config.active_robot = new game_classes.Robot(game_config.user.robot, game_config.map, game_config.user._id)
-  game_config.opponent_robot = new game_classes.Robot(game_config.opponent.robot, game_config.map, game_config.opponent._id)
+  game_config.runners = generate_runners(game_config.players, game_config.map)
 
-  game_config.user_code = game_config.user.code
+  randomize_initial_robot_position(game_config.runners.map(runner => runner.robot), game_config.map)
 
-  randomize_initial_robot_position(game_config.active_robot, game_config.opponent_robot, game_config.map)
-
-  socket.handshake.query.running_language
-
-  game_config.running_language = game_config.user.running_language
   game_config.all_killed = false
   game_config.test = true
 
@@ -272,7 +296,6 @@ function generate_runners(players, map) {
       runners_queue.push(new SanRunner())
     }
   }
-
   return runners_queue
 }
 
@@ -297,7 +320,7 @@ function generate_spawn_actions(robots) {
     actions: robots.map(
       robot => ({
         name: 'spawn',
-        unit: robot
+        unit: sanitize_robot_data(robot)
       })
     )
   }
@@ -305,10 +328,6 @@ function generate_spawn_actions(robots) {
 
 const emit_robot_spawn = (socket, game_configuration) => {
   socket.emit('spawn', generate_spawn_actions(game_configuration.runners.map(runner => runner.robot)))
-}
-
-const sanitize_round_info = (user_round, opponent_round) => {
-
 }
 
 const get_first_free_tile = (side, map) => {
