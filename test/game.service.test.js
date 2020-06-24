@@ -66,7 +66,7 @@ describe('update_robot()', () => {
       robot_copy.walk(3)
       robot_copy.battery = robot.battery
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(robot.position.x, robot_copy.position.x)
       assert.equal(robot.position.y, robot_copy.position.y)
@@ -84,7 +84,7 @@ describe('update_robot()', () => {
 
       robot_copy.walk(3)
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       compare_memory_maps(robot, robot_copy)
     })
@@ -105,7 +105,7 @@ describe('update_robot()', () => {
 
       robot_copy.check()
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       compare_memory_maps(robot, robot_copy)
     })
@@ -133,7 +133,7 @@ describe('update_robot()', () => {
 
       robot_copy.hit()
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(opponent.status, "dead")
     })
@@ -164,7 +164,7 @@ describe('update_robot()', () => {
 
       assert.equal(robot.orientation, 'up')
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(opponent.status, 'dead')
       assert.equal(robot.orientation, 'up')
@@ -191,7 +191,7 @@ describe('update_robot()', () => {
 
       robot_copy.hit()
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(map.layers.items[map.get_index_by_address(opponent.position.x, opponent.position.y)][0], 'scraps')
     })
@@ -212,7 +212,7 @@ describe('update_robot()', () => {
 
       robot_copy.hit()
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(robot.hp, robot_copy.hp)
     })
@@ -248,7 +248,7 @@ describe('update_robot()', () => {
       assert.equal(map2.has_obstacle({ x: 0, y: 1 }), true)
       assert.equal(map.has_obstacle({ x: 0, y: 1 }), false)
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(map2.has_obstacle({ x: 0, y: 1 }), false)
     })
@@ -295,7 +295,7 @@ describe('update_robot()', () => {
       robot_copy.hit()
 
       assert.equal(opponent.hp, game_classes.Robot.models[opponent.model].hp)
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(robot_copy.round_movements.actions[1].name, 'get-hit')
       assert.equal(robot_copy.round_movements.actions[1].robot_id, opponent.robot_id)
@@ -323,7 +323,7 @@ describe('update_robot()', () => {
       assert.equal(robot_copy.position.x, 0)
       assert.equal(robot_copy.position.y, 2)
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(robot.position.x, 0)
       assert.equal(robot.position.y, 2)
@@ -348,7 +348,7 @@ describe('update_robot()', () => {
       robot_copy.jump()
 
       assert.equal(opponent.hp, game_classes.Robot.models[opponent.model].hp)
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(robot_copy.round_movements.actions[1].name, 'get-hit')
       assert.equal(robot_copy.round_movements.actions[1].robot_id, opponent.robot_id)
@@ -371,7 +371,7 @@ describe('update_robot()', () => {
       assert.equal(robot_copy.orientation, 'left')
       assert.equal(robot.orientation, 'up')
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(robot.orientation, robot_copy.orientation)
     })
@@ -392,7 +392,7 @@ describe('update_robot()', () => {
       assert.equal(robot_copy.orientation, 'right')
       assert.equal(robot.orientation, 'up')
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(robot.orientation, robot_copy.orientation)
     })
@@ -411,7 +411,7 @@ describe('update_robot()', () => {
 
       robot_copy.turn_right()
 
-      game_service.update_robot(robot_copy.round_movements, robot, opponent)
+      game_service.update_robot(robot_copy.round_movements, [robot, opponent])
 
       assert.equal(robot.orientation, robot_copy.orientation)
     })
@@ -425,11 +425,6 @@ describe('end_game', () => {
   })
 })
 
-describe('encapsulate_user_code', () => {
-  it.skip('should properly encapsulate user code', () => {
-    game_service.encapsulate_user_code('hello world !', new game_classes.Robot('default', { square_size: 2 }, user_ids[0]), new game_classes.Robot('default', { square_size: 2 }, user_ids[1]))
-  })
-})
 
 describe('run_round', () => {
   it.skip('should return robot turn actions if user_code is usable', async () => {
@@ -451,40 +446,6 @@ describe('start_game', () => {
   it.skip('should return full configuration for game instantiation', async () => {
     const game_config = await game_service.start_game({})
 
-  })
-})
-
-describe('end_round()', () => {
-  it.skip('should switch robot and opponent_robot', () => {
-    const game_config = generate_game_config()
-
-    const first_active_robot = game_config.active_robot
-    const first_opponent_robot = game_config.opponent_robot
-
-    game_service.end_round({}, game_config.active_robot.round_movements, game_config)
-
-    assert.equal(game_config.active_robot.robot_id, first_opponent_robot.robot_id)
-    assert.equal(game_config.opponent_robot.robot_id, first_active_robot.robot_id)
-  })
-
-  it.skip('should switch user_code if both are js users', () => {
-    const game_config = generate_game_config()
-
-    const first_user_code = game_config.user.code
-    const first_opponent_code = game_config.opponent.code
-    game_service.end_round({}, game_config.active_robot.round_movements, game_config)
-
-    assert.equal(game_config.user_code, first_opponent_code)
-  })
-
-  it.skip('should switch selected_language', () => {
-    const game_config = generate_game_config()
-    game_config.opponent.selected_language = 'san'
-
-    assert.equal(game_config.selected_language, 'js')
-    game_service.end_round({}, game_config.active_robot.round_movements, game_config)
-
-    assert.equal(game_config.selected_language, 'san')
   })
 })
 
