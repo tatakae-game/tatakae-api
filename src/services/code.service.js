@@ -89,13 +89,3 @@ export function resolve_files(files) {
 
   return code
 }
-
-
-export async function try_code(files) {
-  const code = resolve_files(files)
-  const map = new game_classes.Map(generate_field())
-  const robot = new game_classes.Robot('default', map, 'Testor')
-  const opponent = new game_classes.Robot('default', map, 'Testor2')
-  const encapsulated_code = await encapsulate_user_code(code, robot, opponent, map)
-  return await get_errors(encapsulated_code)
-}

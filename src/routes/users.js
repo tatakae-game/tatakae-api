@@ -7,6 +7,7 @@ import Joi from '@hapi/joi'
 import * as constants from '../constants'
 import guard from '../middlewares/guard'
 import schema, { SchemaError } from '../middlewares/schema'
+import game_classes from '../game/game-classes'
 
 import { ErrorsGenerator } from '../utils/errors'
 
@@ -14,6 +15,9 @@ import * as users from '../models/users'
 import * as groups_permisions from '../models/groups'
 import * as games from '../models/game'
 import { check_include_errors, resolve_files, try_code } from '../services/code.service'
+import { JsRunner } from '../game/js-runner'
+import { generate_field } from '../services/game.service'
+import { SanRunner } from '../game/san-runner'
 
 const user_schema = Joi.object().keys({
   username: Joi.string().regex(users.username_regex).required(),
@@ -146,7 +150,7 @@ router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
 
 router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
-    const { files } = req.body || {}
+    const { files, language } = req.body || {}
 
     const user = await users.model.findById(req.params.id)
     if (!user) {
@@ -164,7 +168,23 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
       })
     }
 
-    const errors = await try_code(files)
+    let runner
+    const map = new game_classes.Map(generate_field())
+
+    if(language === 'js') {
+      runner = new JsRunner({js_code: files}, map)
+    } else if (language === 'san') {
+      runner = new SanRunner()
+    }
+
+    if(!runner) {
+      return res.send({
+        success: "false",
+        messages: ["Selected language not supported"],
+      })
+    }
+
+    const errors = await runner.test()
     if (errors) {
       return res.send({
         success: "false",
