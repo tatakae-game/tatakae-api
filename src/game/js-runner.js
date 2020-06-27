@@ -55,4 +55,10 @@ export class JsRunner {
   async run(opponent) {
     return await wandbox_service.execute_code(await this.encapsulate_code(opponent[0]))
   }
+
+  async test() {
+    const opponent = new game_classes.Robot('default', this.map, 'Testor2')
+    const encapsulated_code = await this.encapsulate_code(opponent)
+    return await wandbox_service.get_errors(encapsulated_code)
+  }
 }
