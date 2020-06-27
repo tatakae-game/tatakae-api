@@ -92,6 +92,41 @@ router.get('/users/admins',
     }
   })
 
+router.get('/users/code/js', guard({ auth: constants.AUTH }), async (req, res) => {
+  try {
+
+    const user = await users.find_by_token(req.token)
+
+    if (!user) {
+      return res.status(404).send(ErrorsGenerator.gen([`This user doesn't exist.`]))
+    }
+
+    res.send({
+      success: true,
+      code: user.js_code,
+    })
+  } catch {
+    res.status(404).send(ErrorsGenerator.gen([`This user doesn't exist.`]))
+  }
+})
+
+router.get('/users/code/san', guard({ auth: constants.AUTH }), async (req, res) => {
+  try {
+    const user = await users.find_by_token(req.token)
+
+    if (!user) {
+      return res.status(404).send(ErrorsGenerator.gen([`This user doesn't exist.`]))
+    }
+
+    res.send({
+      success: true,
+      code: user.san_code,
+    })
+  } catch {
+    res.status(404).send(ErrorsGenerator.gen([`This user doesn't exist.`]))
+  }
+})
+
 router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const user = await users.model.findById(req.params.id).populate('groups').lean()
