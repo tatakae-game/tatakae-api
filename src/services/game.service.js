@@ -231,7 +231,7 @@ async function register_game(game_conf, winners, losers) {
   })
 }
 
-const generate_test_game_config = async (socket, code, language) => {
+const generate_test_game_config = async (socket, files, language) => {
   const game_config = {
     players: [
       {
@@ -248,14 +248,6 @@ const generate_test_game_config = async (socket, code, language) => {
       }
     ]
   }
-
-  const files = [
-    {
-      name: 'test.js',
-      code,
-      is_entrypoint: true
-     }
-  ]
 
   if(language === 'js'){
     game_config.players[0].js_code = files
