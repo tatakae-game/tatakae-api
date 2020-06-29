@@ -21,13 +21,10 @@ export default (io) => {
       if (socket.handshake.query.test === 'true') {
         const files = JSON.parse(atob(socket.handshake.query.code))
         game_configuration = await game_service.generate_test_game_config(socket, files, socket.handshake.query.language)
-        console.log(game_configuration)
         const errors = await game_configuration.runners[0].test()
-        console.log(errors.replace('\n', ''))
-        console.log('end error')
-        if(errors) {
-          return socket.emit("error", {
-            errors : errors.replace("\n", '')
+        if (errors) {
+          return socket.emit('err', {
+            error: errors
           })
         }
       } else {
@@ -55,7 +52,6 @@ export default (io) => {
       socket.disconnect(true)
 
     } catch (e) {
-      console.log('toto')
       console.log(e)
     }
   })
