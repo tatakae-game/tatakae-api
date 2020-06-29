@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import atob from 'atob'
 
 import token_middlware from '../socket-middlewares/token'
 import * as users from '../models/users'
@@ -13,13 +14,22 @@ import * as game_constants from '../constants/game'
  */
 export default (io) => {
   const nsp = io.of('/matchmaking').use(token_middlware)
-
   nsp.on('connection', async (socket) => {
 
     try {
       let game_configuration
       if (socket.handshake.query.test === 'true') {
-        game_configuration = await game_service.generate_test_game_config(socket, socket.handshake.query.code, socket.handshake.query.language)
+        const files = JSON.parse(atob(socket.handshake.query.code))
+        game_configuration = await game_service.generate_test_game_config(socket, files, socket.handshake.query.language)
+        console.log(game_configuration)
+        const errors = await game_configuration.runners[0].test()
+        console.log(errors.replace('\n', ''))
+        console.log('end error')
+        if(errors) {
+          return socket.emit("error", {
+            errors : errors.replace("\n", '')
+          })
+        }
       } else {
         game_configuration = await game_service.start_game(socket)
       }
@@ -45,6 +55,7 @@ export default (io) => {
       socket.disconnect(true)
 
     } catch (e) {
+      console.log('toto')
       console.log(e)
     }
   })
