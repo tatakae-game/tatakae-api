@@ -58,6 +58,7 @@ export function sanitize(user) {
     score: user.score,
     registered: user.created,
     robot: user.robot,
+    running_language: user.running_language,
   }
 }
 
