@@ -7,8 +7,14 @@ const map = Map.from_instance(JSON.parse('{{ map_string }}'), robot, [opponent])
 robot.map = map
 opponent.map = map
 
+const last_turn_energy = robot.energy
+
 while (robot.battery > 0 && opponent.hp > 0 && robot.is_running) {
   {{ user_code }}
+
+  if(robot.energy === robot.last_turn_energy) { 
+    robot.is_running = false
+  }
 }
 
 robot.map = null

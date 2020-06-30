@@ -21,12 +21,14 @@ export default (io) => {
       if (socket.handshake.query.test === 'true') {
         const files = JSON.parse(atob(socket.handshake.query.code))
         game_configuration = await game_service.generate_test_game_config(socket, files, socket.handshake.query.language)
+
         const errors = await game_configuration.runners[0].test()
         if (errors) {
           return socket.emit('err', {
             error: errors
           })
         }
+
       } else {
         game_configuration = await game_service.start_game(socket)
       }
