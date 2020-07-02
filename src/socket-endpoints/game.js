@@ -8,6 +8,7 @@ import * as wandbox from '../services/wandbox.service'
 import * as game_service from '../services/game.service'
 import gameClasses from '../game/game-classes'
 import * as game_constants from '../constants/game'
+import { check_include_errors, resolve_files } from '../services/code.service'
 
 /**
  * @param {import('socket.io').Server} io 
@@ -20,8 +21,15 @@ export default (io) => {
       let game_configuration
       if (socket.handshake.query.test === 'true') {
         const files = JSON.parse(atob(socket.handshake.query.code))
-        game_configuration = await game_service.generate_test_game_config(socket, files, socket.handshake.query.language)
 
+        const include_errors = check_include_errors(files)
+        if (include_errors.length !== 0) {
+          return socket.emit('err', {
+            error: include_errors
+          })
+        }
+
+        game_configuration = await game_service.generate_test_game_config(socket, files, socket.handshake.query.language)
         const errors = await game_configuration.runners[0].test()
         if (errors) {
           return socket.emit('err', {
