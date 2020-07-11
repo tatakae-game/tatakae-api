@@ -160,12 +160,14 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
       })
     }
 
-    const include_errors = check_include_errors(files)
-    if (include_errors.length !== 0) {
-      return res.send({
-        success: "false",
-        messages: include_errors,
-      })
+    if(language === 'js') {
+      const include_errors = check_include_errors(files)
+      if (include_errors.length !== 0) {
+        return res.send({
+          success: "false",
+          messages: include_errors,
+        })
+      }
     }
 
     let runner
@@ -192,7 +194,9 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
       })
     }
 
-    user.js_code = files
+
+
+    user[`${language}_code`] = files
     user.save()
     return res.send({
       success: "true",

@@ -20,6 +20,11 @@ export default (io) => {
     try {
       let game_configuration
       if (socket.handshake.query.test === 'true') {
+        if (socket.handshake.query.language === 'san') {
+          return socket.emit('err', {
+            error: ['SAN language test not implemented yet']
+          })
+        }
         const files = JSON.parse(atob(socket.handshake.query.code))
 
         const include_errors = check_include_errors(files)
