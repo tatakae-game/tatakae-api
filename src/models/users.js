@@ -25,7 +25,7 @@ export const model = db.model('User', {
   created: { type: Date, default: Date.now, },
   robot: { type: String, default: 'default' },
   js_code: { type: [File], default: default_code },
-  san_code: { type: String, default: null },
+  san_code: { type: [File], default: default_code },
   running_language: { type: String, default: 'js' },
 })
 
