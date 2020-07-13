@@ -30,13 +30,12 @@ const user_schema = Joi.object().keys({
       }
     }
   }),
+  password: Joi.string().email().required(),
 })
 
 router.get('/users/me', guard({ auth: constants.AUTH }), async (req, res) => {
-  const user = users.sanitize(await users.find_by_token(req.token))
-  const win_ratio = await games.get_win_rate(user._id)
+  const user = await users.sanitize(await users.find_by_token(req.token))
 
-  user.win_ratio = win_ratio
   res.send({
     success: true,
     profile: user,
@@ -160,7 +159,7 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
       })
     }
 
-    if(language === 'js') {
+    if (language === 'js') {
       const include_errors = check_include_errors(files)
       if (include_errors.length !== 0) {
         return res.send({
@@ -173,13 +172,13 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
     let runner
     const map = new game_classes.Map(generate_field())
 
-    if(language === 'js') {
-      runner = new JsRunner({js_code: files}, map)
+    if (language === 'js') {
+      runner = new JsRunner({ js_code: files }, map)
     } else if (language === 'san') {
       runner = new SanRunner()
     }
 
-    if(!runner) {
+    if (!runner) {
       return res.send({
         success: "false",
         messages: ["Selected language not supported"],
@@ -210,11 +209,60 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
   }
 })
 
-router.put('/users/:id', guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_ADMIN] }), schema({ body: user_schema }), async (req, res) => {
+router.put('/user/language', guard({ auth: constants.AUTH }), async (req, res) => {
+  console.log('coucou')
 
   try {
-    const { username, email, groups } = req.body || {}
+    const { language } = req.body || {}
+    console.log(language)
+    const user = await users.find_by_token(req.token)
+
+    if (!language) {
+      return res.status(400).json({
+        success: false,
+        errors: ['Please, provide a language'],
+      })
+    }
+
+    if (language === 'js' || language === 'san') {
+
+      user.running_language = language
+      console.log()
+      user.save()
+
+      return res.status(200).json({
+        success: true,
+        running_language: language,
+      })
+    } else {
+      return res.status(400).json({
+        success: false,
+        errors: ['Please provide a valid language']
+      })
+    }
+
+
+  } catch {
+    res.status(500).json({
+      success: false,
+      errors: ['An error occured'],
+    })
+  }
+})
+
+router.put('/users/:id', guard({ auth: constants.AUTH }), schema({ body: user_schema }), async (req, res) => {
+
+  try {
+    const { username, email, groups, password } = req.body || {}
     const user = await users.model.findById({ _id: req.params.id })
+
+    if (password !== user.password) {
+      return res.status(400).json({
+        success: false,
+        errors: ['password is invalid'],
+      })
+    }
+
     let errors = []
 
     if (user) {

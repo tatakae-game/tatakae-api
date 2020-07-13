@@ -3,6 +3,8 @@ import XRegExp from 'xregexp';
 import db from '../db'
 
 import * as tokens from './tokens'
+import gameClasses from '../game/game-classes';
+import { get_win_rate } from './game';
 
 const default_code = [{
   name : 'index.js',
@@ -47,8 +49,10 @@ export async function find_by_token(token) {
   return await model.findById(user).populate('groups')
 }
 
-export function sanitize(user) {
+export async function sanitize(user) {
   if (!user) return {}
+
+  const win_ratio = await get_win_rate(user._id)
 
   return {
     id: user._id,
@@ -58,6 +62,7 @@ export function sanitize(user) {
     score: user.score,
     registered: user.created,
     robot: user.robot,
+    win_ratio,
     running_language: user.running_language,
   }
 }
