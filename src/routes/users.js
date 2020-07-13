@@ -18,6 +18,7 @@ import { check_include_errors, resolve_files, try_code } from '../services/code.
 import { JsRunner } from '../game/js-runner'
 import { generate_field } from '../services/game.service'
 import { SanRunner } from '../game/san-runner'
+import { verify, hash } from '../utils/hash'
 
 const user_schema = Joi.object().keys({
   username: Joi.string().regex(users.username_regex).required(),
@@ -193,8 +194,6 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
       })
     }
 
-
-
     user[`${language}_code`] = files
     user.save()
     return res.send({
@@ -209,9 +208,55 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
   }
 })
 
-router.put('/user/language', guard({ auth: constants.AUTH }), async (req, res) => {
-  console.log('coucou')
+router.put('/user/password', guard({ auth: constants.AUTH }), async (req, res) => {
+  try {
+    const { password, new_password } = req.body || {}
+    console.log(password, new_password)
 
+    if (!password || !new_password) {
+      return res.status(400).json({
+        success: false,
+        errors: ['Please, provide password and new_password'],
+      })
+    }
+
+    const user = await users.find_by_token(req.token)
+    console.log(user)
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        errors: ["User doesn't exist"],
+      })
+    }
+
+    console.log(password)
+    const valid = await verify(user.password, password)
+    console.log(valid)
+
+    if (!valid) {
+      return res.status(400).json({
+        success: false,
+        errors: ['Password is not valid'],
+      })
+    }
+
+    user.password = hash(new_password)
+    user.save()
+
+    return res.status(200).json({
+      success: true,
+    })
+
+  } catch (e) {
+    return res.status(500).json({
+      success: false,
+      errors: [e],
+    })
+  }
+})
+
+router.put('/user/language', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const { language } = req.body || {}
     console.log(language)
@@ -227,7 +272,6 @@ router.put('/user/language', guard({ auth: constants.AUTH }), async (req, res) =
     if (language === 'js' || language === 'san') {
 
       user.running_language = language
-      console.log()
       user.save()
 
       return res.status(200).json({
