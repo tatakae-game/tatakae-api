@@ -155,7 +155,7 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
     if (!user) {
       res.status(400).json({
         success: false,
-        error: ['The user does not exist.'],
+        errors: ['The user does not exist.'],
       })
     }
 
@@ -164,7 +164,7 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
       if (include_errors.length !== 0) {
         return res.send({
           success: "false",
-          messages: include_errors,
+          errors: include_errors,
         })
       }
     }
@@ -178,10 +178,10 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
       runner = new SanRunner()
     }
 
-    if (!runner) {
+    if (runner === undefined) {
       return res.send({
         success: "false",
-        messages: ["Selected language not supported"],
+        errors: ["Selected language not supported"],
       })
     }
 
@@ -189,7 +189,7 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
     if (errors) {
       return res.send({
         success: "false",
-        messages: [errors],
+        errors: [errors],
       })
     }
 
@@ -197,6 +197,7 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
     user.save()
     return res.send({
       success: "true",
+      errors: ['Code successfuly saved']
     })
 
   } catch {
@@ -228,10 +229,7 @@ router.put('/user/password', guard({ auth: constants.AUTH }), async (req, res) =
         errors: ["User doesn't exist"],
       })
     }
-
-    console.log(password)
     const valid = await verify(user.password, password)
-    console.log(valid)
 
     if (!valid) {
       return res.status(400).json({
