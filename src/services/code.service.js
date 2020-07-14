@@ -1,8 +1,4 @@
-import { match } from "xregexp"
 import { get_all_group_match } from "./regex.service"
-import game_classes from '../game/game-classes'
-import { generate_field, encapsulate_user_code } from "./game.service"
-import { get_errors } from "./wandbox.service"
 
 const include_regex = /include ["'](\w*.\w*)["'];?/g
 

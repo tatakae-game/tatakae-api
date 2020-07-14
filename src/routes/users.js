@@ -13,7 +13,6 @@ import { ErrorsGenerator } from '../utils/errors'
 
 import * as users from '../models/users'
 import * as groups_permisions from '../models/groups'
-import * as games from '../models/game'
 import { check_include_errors, resolve_files, try_code } from '../services/code.service'
 import { JsRunner } from '../game/js-runner'
 import { generate_field } from '../services/game.service'

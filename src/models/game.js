@@ -1,7 +1,4 @@
 import db from '../db'
-import game from '../socket-endpoints/game'
-
-
 
 /**
  * Action related model

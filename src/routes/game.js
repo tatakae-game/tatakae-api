@@ -2,12 +2,9 @@ import { Router } from 'express'
 const router = Router()
 export default router
 
-import db from '../db'
-
 import * as constants from '../constants'
 import guard from '../middlewares/guard'
 
-import * as users from '../models/users'
 import * as games from '../models/game'
 import { isBoolean } from 'lodash'
 

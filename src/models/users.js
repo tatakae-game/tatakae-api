@@ -3,7 +3,6 @@ import XRegExp from 'xregexp';
 import db from '../db'
 
 import * as tokens from './tokens'
-import gameClasses from '../game/game-classes';
 import { get_win_rate } from './game';
 
 const default_code = [{
