@@ -88,7 +88,7 @@ router.get('/users/admins',
           return arr
         }, [])
 
-      res.json({ success: true, users: admins.map(users.sanitize) })
+      res.json({ success: true, users: admins })
 
     } catch (e) {
       res.status(500).json({ success: false, errors: [e.message] })
@@ -140,7 +140,7 @@ router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
 
     res.send({
       success: true,
-      profile: users.sanitize(user),
+      profile: await users.sanitize(user),
     })
   } catch {
     res.status(404).send(ErrorsGenerator.gen([`This user doesn't exist.`]))
