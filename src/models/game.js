@@ -53,6 +53,7 @@ export function simplify(game) {
     id: game._id,
     winners: game.winners,
     participants: game.participants,
+    created: game.created,
   }
 }
 
