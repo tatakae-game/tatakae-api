@@ -52,7 +52,7 @@ export function simplify(game) {
   return {
     id: game._id,
     winner: game.winner,
-    particpants: game.participants,
+    participants: game.participants,
   }
 }
 
