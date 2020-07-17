@@ -51,7 +51,7 @@ export const model = db.model('Game', {
 export function simplify(game) {
   return {
     id: game._id,
-    winner: game.winner,
+    winners: game.winners,
     participants: game.participants,
   }
 }
