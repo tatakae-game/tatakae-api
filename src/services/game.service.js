@@ -281,7 +281,7 @@ function generate_runners(players, map) {
     if (player.running_language === 'js') {
       runners_queue.push(new JsRunner(player, map))
     } else if (player.running_language === 'san') {
-      runners_queue.push(new SanRunner())
+      runners_queue.push(new SanRunner(player, map))
     }
   }
   return runners_queue
