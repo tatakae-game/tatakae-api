@@ -11,24 +11,48 @@ export class SanRunner {
 
 
     convert_map(opponent) {
-        console.log(this.map)
+        let index = 0
         const tiles = []
-        for (let i = 0; i < this.map.layers.ground.length; i++) {
-            tiles.push({
-                ground: this.map.layers.ground[i],
-                obstacles: this.map.layers.obstacles[i],
-                address: this.map.layers.addresses[i],
-                items: "",
-                opponent: this.map.layers.addresses[i].x === opponent.position.x && this.map.layers.addresses[i].y === opponent.position.y ? opponent.robot_id : "",
-            })
+        const size = Math.sqrt(this.map.layers.ground.length)
+        for (let i = 0; i < size; i++) {
+            tiles[i] = []
+            for (let j = 0; j < size; j++) {
+                tiles[i].push({
+                    ground: this.map.layers.ground[index],
+                    obstacles: this.map.layers.obstacles[index],
+                    address: this.map.layers.addresses[index],
+                    items: "",
+                    opponent: this.map.layers.addresses[index].x === opponent.position.x && this.map.layers.addresses[index].y === opponent.position.y ? opponent.robot_id : "",
+                })
+                index += 1
+            }
         }
         return tiles
     }
 
+    convert_memory_map(memory_map) {
+        let index = 0
+        const tiles = []
+        const size = Math.sqrt(this.map.layers.ground.length)
+        for (let i = 0; i < size; i++) {
+            tiles[i] = []
+            for (let j = 0; j < size; j++) {
+                if (memory_map[index] === 'not discovered') {
+                    tiles[i].push(null)
+                } else {
+                    tiles[i].push(memory_map[index])
+                }
+                index += 1
+            }
+        }
+        return tiles
+    }
+
+
     simplified_robot() {
         return {
             orientation: this.robot.orientation,
-            memory_map: this.robot.memory_map,
+            memory_map: this.convert_memory_map(this.robot.memory_map),
             robot_id: this.robot.robot_id,
             hp: this.robot.hp,
 
@@ -42,12 +66,12 @@ export class SanRunner {
 
     async run(opponent) {
         const data = {
-            robot: this.simplified_robot(),
             opponent: {
                 hp: opponent.hp,
                 id: opponent.robot_id,
             },
             map: this.convert_map(opponent),
+            robot: this.simplified_robot(),
         }
 
         // DATA TO SEND STRINGIFIED TO SAN
