@@ -120,7 +120,7 @@ router.get('/games/:id', guard({ auth: constants.AUTH }), async (req, res) => {
 
     res.send({
       success: true,
-      games: result,
+      games: result[0],
     })
 
   } catch {
