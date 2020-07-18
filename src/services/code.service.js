@@ -1,7 +1,8 @@
 import { get_all_group_match } from "./regex.service"
 
 const include_regex = /include ["'](\w*.\w*)["'];?/g
-
+const main_regex = /fn *main *\( *robot: *Robot&\) *{.*/g
+const user_main_function = "fn user_super_giga_upra_cool_code(robot: Robot&) {";
 /**
  * 
  * @param {[{name: String, code: String}]} files 
@@ -20,6 +21,22 @@ export function check_include_errors(files) {
   }
 
   return errors
+}
+
+export function replace_main_name(main_file) {
+  console.log(main_file)
+  const matchs = get_all_group_match(main_regex, main_file, 1)
+
+  if (matchs.length <= 0) {
+    console.log("Must provide a main function")
+  } else if (matchs.length > 1){
+    console.log("Multiple main function")
+
+  } else {
+    main_file = main_file.replace(main_regex, user_main_function)
+  }
+
+  return main_file
 }
 
 
