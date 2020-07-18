@@ -85,7 +85,11 @@ router.get('/games/:id/winrate', guard({ auth: constants.AUTH }), async (req, re
 
 router.put('/games/status', guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_GAME] }), async (req, res) => {
   try {
-    const { id, status } = req.body || {}
+    let { id, status } = req.body || {}
+
+    if (typeof status === 'string') {
+      status = status === 'true'
+    }
 
     const result = await games.model.findById(id)
 

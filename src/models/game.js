@@ -54,6 +54,7 @@ export function simplify(game) {
     winners: game.winners,
     participants: game.participants,
     created: game.created,
+    active: game.active,
   }
 }
 
