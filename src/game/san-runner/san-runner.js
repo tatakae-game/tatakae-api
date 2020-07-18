@@ -10,7 +10,6 @@ export class SanRunner {
         this.language = 'san'
         this.robot = new game_classes.Robot(user.robot, map, user._id)
         this.code = user.san_code
-        this.running_language = user.san_code
     }
 
     async ready_code() {
