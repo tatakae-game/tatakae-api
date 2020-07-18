@@ -349,7 +349,6 @@ class Action {
         let events_json = JsonNode::new_array();
 
         for i in std::range<i32>::new(this->events.length) {
-            std::print("event");
             events_json.insert(this->events[i].to_json());
         }
 
@@ -705,7 +704,6 @@ class Robot {
             return actions;
         } else {
             let furthest = cleaned_positions[0];
-            furthest.print();
             let tile = this->robotMap.value[0].get_tile(furthest)[0];
             if tile.has_obstacle() {
                 moove_action.events.push(Event::destroy(tile.obstacle, tile.address));
@@ -1010,7 +1008,7 @@ fn get_robot_from_json(json: JsonNode, opponent: Robot *, robotMap: RobotMap *):
 }
 
 fn get_opponent_from_json(json: JsonNode): Robot * {
-    let id = json["opponent"]["robot_id"].get_string();
+    let id = json["opponent"]["id"].get_string();
     let hp = json["opponent"]["hp"].get_int();
 
     return Robot::new_ptr(id, Optional<RobotMap *>::new(), std::string::new("up"), hp, Coordinates::new(0, 0), Optional<Robot *>::new(), MemoryMap::new_empty(3));
@@ -1019,7 +1017,6 @@ fn get_opponent_from_json(json: JsonNode): Robot * {
 fn get_map_from_json(json: JsonNode): RobotMap * {
     let tiles = std::Vec<std::Vec<Tile *>>::new();
     let size = json.get_array().length;
-    std::print(size);
 
     for i in std::range<u64>::new(size) {
         let ttiles = std::Vec<Tile *>::new();
