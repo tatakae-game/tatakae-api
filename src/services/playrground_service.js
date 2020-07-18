@@ -27,7 +27,7 @@ export async function execute_code(files, stdin, entrypoint) {
             "entrypoint": entrypoint,
         })
 
-        return res.data
+        return res.data.stdout
 
     } catch (e) {
         console.log(e)
