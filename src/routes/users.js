@@ -175,7 +175,7 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
     if (language === 'js') {
       runner = new JsRunner({ js_code: files }, map)
     } else if (language === 'san') {
-      runner = new SanRunner()
+      runner = new SanRunner({ san_code: files }, map)
     }
 
     if (runner === undefined) {
