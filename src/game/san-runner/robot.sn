@@ -975,15 +975,18 @@ fn get_memory_map_from_json(json: JsonNode): MemoryMap {
     for i in std::range<u64>::new(size) {
         let ttiles = std::Vec<Tile *>::new();
         for j in std::range<u64>::new(size) {
+            if json[i][j].type == JsonValueType::Null {
+                ttiles.push(null);
+            } else {
+                let ground = json[j][i]["ground"].get_string();
+                let obstacle = json[j][i]["obstacle"].get_string();
+                let address = Coordinates::new(json[j][i]["address"]["x"].get_int(),json[j][i]["address"]["y"].get_int());
+                let opponent = json[j][i]["opponent"].get_string();
+                let items = std::Vec<std::string>::new();
+                let tile = Tile::new_ptr(ground, obstacle, address, items, opponent);
 
-            let ground = json[j][i]["ground"].get_string();
-            let obstacle = json[j][i]["obstacle"].get_string();
-            let address = Coordinates::new(json[j][i]["address"]["x"].get_int(),json[j][i]["address"]["y"].get_int());
-            let opponent = json[j][i]["opponent"].get_string();
-            let items = std::Vec<std::string>::new();
-            let tile = Tile::new_ptr(ground, obstacle, address, items, opponent);
-
-            ttiles.push(tile);
+                ttiles.push(tile);
+            }
         }
 
         tiles.push(ttiles);
