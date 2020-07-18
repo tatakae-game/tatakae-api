@@ -33,9 +33,6 @@ export function replace_main_name(main_file) {
   } else {
     main_file = main_file.replace(main_regex, user_main_function)
   }
-  console.log("start")
-  console.log(main_file)
-  console.log("end")
 
   return main_file
 }
