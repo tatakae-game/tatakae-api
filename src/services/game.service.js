@@ -3,7 +3,7 @@ import game_classes from '../game/game-classes'
 import * as users from '../models/users'
 import * as games_models from '../models/game'
 import { JsRunner } from '../game/js-runner'
-import { SanRunner } from '../game/san-runner'
+import { SanRunner } from '../game/san-runner/san-runner'
 
 function fill_ground(type, size) {
   return Array(size * size).fill(type)

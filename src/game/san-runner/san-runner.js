@@ -1,4 +1,7 @@
-import game_classes from '../game/game-classes'
+import game_classes from '../game-classes'
+import { replace_main_name } from '../../services/code.service'
+import * as fs from 'fs'
+import * as path from 'path'
 
 export class SanRunner {
 
@@ -59,8 +62,57 @@ export class SanRunner {
         }
     }
 
+    async encapsulate_code(entrypoint_code) {
+        const game_code_promise = new Promise((resolve, reject) => {
+            fs.readFile(path.resolve(__dirname, './san-game-code.sn'), (err, data) => {
+                if (err) {
+                    return reject(err)
+                } else {
+                    resolve(data)
+                }
+            })
+        })
+
+        let game_code = (await game_code_promise).toString()
+
+        game_code = game_code.replace('{{ user_entrypoint_code }}', entrypoint_code)
+
+        return game_code
+    }
+
+    async get_robot_file() {
+        const robot_promise = new Promise((resolve, reject) => {
+            fs.readFile(path.resolve(__dirname, './robot.sn'), (err, data) => {
+                if (err) {
+                    return reject(err)
+                } else {
+                    resolve(data)
+                }
+            })
+        })
+
+        return {
+            name: "source_robot_file.sn",
+            code: (await robot_promise).toString(),
+            is_entrypoint: false,
+        }
+    }
 
     async test() {
+        const data = {
+            opponent: {
+                hp: this.robot.hp,
+                id: this.robot.robot_id,
+            },
+            map: this.convert_map(this.robot),
+            robot: this.simplified_robot(),
+        }
+        const entrypoint = this.code.filter(file => file.is_entrypoint === true)[0]
+        entrypoint.code = replace_main_name(entrypoint.code)
+
+        entrypoint.code = await this.encapsulate_code(entrypoint.code)
+        this.code.push(await this.get_robot_file())
+        console.log(this.code)
         return
     }
 

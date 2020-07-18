@@ -1,0 +1,1039 @@
+
+import "io"
+import "string"
+import "vec"
+import "map"
+import "json"
+
+// ----------------------------- TEST METHOD  -------------------- //
+fn get_test_json(): JsonNode {
+    let size = 7;
+    let robot_json = JsonNode::new_object();
+
+    let testor = JsonNode::new_object();
+
+    let map_json = JsonNode::new_array();
+
+    for i in std::range<i64>::new(size) {
+        let map_map_json = JsonNode::new_array();
+
+        for j in std::range<i64>::new(size) {
+            let tile_json = JsonNode::new_object();
+            tile_json.insert("ground", "sand");
+            tile_json.insert("obstacle", "");
+
+            let coordonate_json = JsonNode::new_object();
+            coordonate_json.insert("x", i);
+            coordonate_json.insert("y", j);
+
+            tile_json.insert("address", coordonate_json);
+            tile_json.insert("items", "");
+            tile_json.insert("opponent", "");
+
+
+            map_map_json.insert(tile_json);
+        }
+        map_json.insert(map_map_json);
+    }
+
+    robot_json.insert("memory_map", map_json);
+    testor.insert("map", map_json);
+
+
+
+    let fake_coordonates = JsonNode::new_object();
+    fake_coordonates.insert("x", 3);
+    fake_coordonates.insert("y", 5);
+
+
+    robot_json.insert("position", fake_coordonates);
+    robot_json.insert("hp", 50);
+    robot_json.insert("robot_id", "aaaaaaaaaaa");
+
+    robot_json.insert("orientation", "down");
+    testor.insert("robot", robot_json);
+
+    let opponent_json = JsonNode::new_object();
+    opponent_json.insert("hp", 14);
+    opponent_json.insert("robot_id", "sggsdgdfgdfsvsv");
+
+    testor.insert("opponent", opponent_json);
+
+    return testor;
+}
+
+// ------------------------------- CLASSES ------------------------- //
+
+class Optional<T> {
+    value: T;
+    is_null: bool = true;
+
+    static fn new() : Optional<T> {
+        return Optional<T> {};
+    }
+
+    static fn new(value: T) : Optional<T> {
+        return Optional<T> {
+            value,
+            is_null = false,
+        };
+    }
+
+    fn set_value(value: T): Optional<T> {
+        this->value = value;
+        this->is_null = false;
+
+        return this[0];
+    }
+}
+
+class Coordinates {
+    x: u64;
+    y: u64;
+
+    static fn new(x: u64, y: u64) : Coordinates {
+        return Coordinates {
+            x,
+            y,
+        };
+    }
+
+    fn print(): void {
+        std::print("Coordinates : [ x : " + std::string::new(std::to_string(this->x)) + ", y : " + std::to_string(this->y) + " ]");
+    }
+
+    fn ==(coordonates: Coordinates): bool {
+        if this->x == coordonates.x && this->y == coordonates.y {
+            return true;
+        }
+        return false;
+    }
+
+    fn to_json(): JsonNode {
+        let address_json = JsonNode::new_object();
+        address_json.insert("x", this->x);
+        address_json.insert("y", this->y);
+
+        return address_json;
+    }   
+}
+
+class Event {
+    name: std::string;
+    address: Optional<Coordinates>;
+    obstacle: Optional<std::string>;
+
+    static fn new(name: std::string, address: Optional<Coordinates>, obstacle: Optional<std::string>): Event {
+        return Event {
+            name,
+            address, 
+            obstacle,
+        };
+    }
+
+    static fn bump() : Event {
+        return Event {
+            name = std::string::new("bump"),
+            address = Optional<Coordinates>::new(),
+            obstacle = Optional<std::string>::new(),
+        };
+    }
+
+    static fn destroy(obstacle : std::string, address: Coordinates): Event {
+        return Event {
+            name = std::string::new("destroy"),
+            address = Optional<Coordinates>::new(address),
+            obstacle = Optional<std::string>::new(obstacle),
+        };
+    }
+
+    static fn lay_scraps(address: Coordinates): Event {
+        return Event {
+            name = std::string::new("lay-scraps"),
+            address = Optional<Coordinates>::new(address),
+            obstacle = Optional<std::string>::new(),
+        };
+    }
+
+    // -------------------------- UTILITARIES ------------------- //
+
+    fn print() {
+        std::print("name :" + this->name);
+        if !this->obstacle.is_null {
+            std::print("obstacle : " + this->obstacle.value);
+        }
+        if !this->address.is_null {
+            this->address.value.print();
+        }
+    }
+
+    fn to_json(): JsonNode {
+        let event_json = JsonNode::new_object();
+
+        event_json.insert("name", this->name);
+
+        if !this->address.is_null {
+            event_json.insert("address", this->address.value.to_json());
+        }
+
+        if !this->obstacle.is_null {
+            event_json.insert("obstacle", this->obstacle.value);
+        }
+
+        return event_json;
+    }
+}
+
+class Tile {
+    ground: std::string;
+    obstacle: std::string;
+    address: Coordinates;
+    items: std::Vec<std::string>;
+    opponent: std::string;
+
+    static fn new(ground: std::string, obstacle: std::string, address: Coordinates, items: std::Vec<std::string>, opponent: std::string) : Tile {
+        return Tile {
+            ground,
+            obstacle,
+            address,
+            items,
+            opponent,
+        };
+    }
+
+    static fn new_ptr(ground: std::string, obstacle: std::string, address: Coordinates, items: std::Vec<std::string>, opponent: std::string): Tile * {
+        let ptr = std::memory::allocate<Tile>(1);
+        ptr[0] = Tile::new(ground, obstacle, address, items, opponent);
+
+        return ptr;
+    }
+
+    fn has_opponent() : bool {
+        if this->opponent == "" {
+            return false;
+        }
+
+        return true;
+    }    
+    
+    fn has_obstacle() : bool {
+        if this->obstacle == "" {
+            return false;
+        }
+
+        return true;
+    }
+
+    fn destroy () : void {
+        this->obstacle = std::string::new("");
+    }
+
+    fn print(): void {
+        std::print("ground : " + this->ground);
+        std::print("obstacle : " + this->obstacle);
+        this->address.print();
+        std::print("opponent: " + this->opponent);
+    }
+
+    fn to_json(): JsonNode {
+        let tile_json = JsonNode::new_object();       
+        tile_json.insert("ground", this->ground);     
+        tile_json.insert("obstacle", this->obstacle); 
+        tile_json.insert("items", JsonNode::new_array()); 
+        tile_json.insert("address", this->address.to_json());
+
+        return tile_json;
+    }
+}
+
+class Action {
+    name: std::string;
+    robot_id: std::string;
+    events: std::Vec<Event>;
+
+    tiles_checked: std::Vec<Tile>;
+    damage: Optional<u64>;
+
+    new_position: Optional<Coordinates>;
+    new_orientation: Optional<std::string>;
+
+    static fn new(name: std::string, robot_id: std::string, tiles_checked: std::Vec<Tile>, damage: Optional<u64>, new_position: Optional<Coordinates>, new_orientation: Optional<std::string>): Action {
+       let events = std::Vec<Event>::new();
+        return Action {
+            name,
+            robot_id,
+            tiles_checked,
+            events,
+            damage,
+            new_position,
+            new_orientation,
+        };
+    }
+
+    static fn new_simplified(name: std::string, robot_id: std::string): Action {
+        let tiles_checked = std::Vec<Tile>::new();
+        let damage = Optional<u64>::new();
+        let new_position = Optional<Coordinates>::new();
+        let new_orientation = Optional<std::string>::new();
+        let events = std::Vec<Event>::new();
+
+        return Action {
+            name,
+            robot_id,
+            tiles_checked,
+            damage,
+            events,
+            new_position,
+            new_orientation,
+        };
+    }
+
+    fn print(): void {
+        std::print("name : " + this->name + "\nid : " + this->robot_id);
+
+        if(this->tiles_checked.length > 0) {
+            std::print("tiles checked:");
+        }
+
+        for i in std::range<i32>::new(this->tiles_checked.length) {
+            this->tiles_checked[i].print();
+        }
+
+        if this->new_position.is_null != true {
+            std::print("New position: ");
+            this->new_position.value.print();
+        }
+
+        if !this->damage.is_null {
+            std::print("Potatos : " + std::string::new(std::to_string(this->damage.value)));
+        }
+
+        if this->new_orientation.is_null != true {
+            std::print("New orientation: " + this->new_orientation.value);
+        }
+
+        for i in std::range<i32>::new(this->events.length) {
+            std::print("event " + std::string::new(std::to_string(i)) + " : ");
+            this->events[i].print();
+        }
+
+        std::print("\n");
+    }
+
+    fn to_json() : JsonNode {
+        let action = JsonNode::new_object();
+
+        action.insert("name", this->name);
+        action.insert("robot_id", this->robot_id);
+
+        let tiles_checked_json = JsonNode::new_array();
+
+        for i in std::range<i32>::new(this->tiles_checked.length) {
+            tiles_checked_json.insert(this->tiles_checked[i].to_json());
+        }
+
+        action.insert("tiles_checked", tiles_checked_json);
+
+        if !this->new_orientation.is_null {
+            action.insert("new_orientation", this->new_orientation.value);
+        }
+
+        if !this->new_position.is_null {
+            action.insert("new_position", this->new_position.value.to_json());
+        }
+
+        if !this->damage.is_null {
+            action.insert("damage", this->damage.value);
+        }
+
+        let events_json = JsonNode::new_array();
+
+        for i in std::range<i32>::new(this->events.length) {
+            std::print("event");
+            events_json.insert(this->events[i].to_json());
+        }
+
+        action.insert("events", events_json);
+
+        return action;
+    }
+}
+
+class RobotMap {
+    size: i32 = 0;
+    tiles: std::Vec<std::Vec<Tile *>>;
+
+    static fn new(tiles: std::Vec<std::Vec<Tile *>>): RobotMap {
+        let size = tiles.length;
+        return RobotMap {
+            tiles,
+            size,
+        };
+    }
+
+    static fn new_ptr(tiles: std::Vec<std::Vec<Tile *>>): RobotMap * {
+        let ptr = std::memory::allocate<RobotMap>(1);
+        ptr[0] = RobotMap::new(tiles);
+
+        return ptr;
+    }
+
+    fn [](y: i32): std::Vec<Tile *>& {
+        return this->tiles[y];
+    }
+
+    fn is_tile_free(coordonates: Coordinates): i1 { 
+        if(coordonates.x < 0 || coordonates.y < 0 || coordonates.x >= this->size || coordonates.y >= this->size){
+            return false;
+        }
+
+        let tile = this->get_tile(coordonates);
+
+        if tile->has_obstacle() {
+            return false;
+        }
+
+        if tile->has_opponent() {
+            return false;
+        }
+
+        return true;
+    }
+
+    fn get_tile(coordonates: Coordinates) : Tile * {
+        return this->tiles[coordonates.y][coordonates.x];
+    }
+
+    fn get_first_free_tile(coordonates: std::Vec<Coordinates>): Coordinates {
+        for i in std::range<i32>::new(coordonates.length) {
+            if this->is_tile_free(coordonates[i]) {
+                return coordonates[i];
+            }
+        }
+        return coordonates[coordonates.length - 1];
+    }
+
+    fn filter_valid_coordonates(coordonates: std::Vec<Coordinates>) : std::Vec<Coordinates> {
+        let valid_coordonates = std::Vec<Coordinates>::new();
+        for i in std::range<i32>::new(coordonates.length) {
+            if !(coordonates[i].x < 0 || coordonates[i].y < 0 || coordonates[i].x >= this->size || coordonates[i].y >= this->size) {
+                valid_coordonates.push(coordonates[i]);
+            }
+        }
+        return valid_coordonates;
+    }
+}
+
+class MemoryMap {
+    memory: std::Vec<std::Vec<Tile *>>;
+    size: i32;
+
+    static fn new(memory: std::Vec<std::Vec<Tile *>>) : MemoryMap {
+        return MemoryMap {
+            size = memory.length,
+            memory,
+        };
+    }
+
+    fn discover(robotMap: RobotMap, coordonates: Coordinates): void {
+        if(coordonates.x < 0 || coordonates.y < 0 || coordonates.x >= this->size || coordonates.y >= this->size){
+            return;
+        }
+        this->memory[coordonates.y][coordonates.x] = robotMap[coordonates.y][coordonates.x];
+    }
+
+    fn get_discovered(): std::Vec<Tile *> {
+        return this->memory.reduce<std::Vec<Tile *>>(fn (acc: std::Vec<Tile *>&, value: const std::Vec<Tile *>&) : std::Vec<Tile *> {
+            for i in std::range<u64>::new(value.length) {
+                if value[i] != null {
+                    acc.push(value[i]);
+                }
+            }
+
+            return acc;
+        }, std::Vec<Tile *>::new());
+    }
+
+    static fn new_empty(size: i32) : MemoryMap {
+        let memory = std::Vec<std::Vec<Tile *>>::new();
+
+        for i in std::range<i64>::new(size) {
+            memory.push(std::Vec<Tile *>::new());
+
+            for j in std::range<i64>::new(size) {
+                memory[i].push(null);
+            }
+        }
+
+        return MemoryMap {
+            memory,
+            size,
+        };
+    }
+
+    fn [](y: i32): std::Vec<Tile *>& {
+        return this->memory[y];
+    }
+}
+
+class Robot {
+    id: std::string;
+
+    hp: i32 = 50;
+    battery : i32 = 10;
+    damage: i32 = 10;
+
+    walk_cost: i32 = 1;
+    jump_cost: i32 = 4;
+    hit_cost: i32 = 2;
+    check_cost: i32 = 1;
+    rotate_cost: i32 = 1;
+    coordonates: Coordinates;
+    opponent: Optional<Robot *>;
+    memory_map: MemoryMap;
+
+    is_running: bool = true;
+
+    status: std::string;
+
+    round_actions: std::Vec<Action>;
+    robotMap: Optional<RobotMap *>;
+
+    orientation: std::string;
+    
+    static fn new(id: std::string, robotMap: Optional<RobotMap *>, orientation: std::string, hp: i32, coordonates: Coordinates, opponent: Optional<Robot *>, memory_map: MemoryMap) : Robot {
+       let round_actions = std::Vec<Action>::new();
+
+        return Robot {
+            round_actions,
+            id,
+            status = std::string::new("alive"),
+            robotMap,
+            orientation,
+            coordonates,
+            hp,
+            opponent,
+            memory_map,
+        };
+    }
+
+    static fn new_ptr(id: std::string, robotMap: Optional<RobotMap *>, orientation: std::string, hp: i32, coordonates: Coordinates, opponent: Optional<Robot *>, memory_map: MemoryMap) : Robot * {        
+        let ptr = std::memory::allocate<Robot>(1);
+        ptr[0] = Robot::new(id, robotMap, orientation, hp, coordonates, opponent, memory_map);
+
+        return ptr;
+    }
+
+// ------------------------- WALK ----------------------- //    
+
+    fn walk_position(): Coordinates {
+        if this->orientation == "up" {
+            return Coordinates::new(this->coordonates.x, this->coordonates.y - 1);
+        } else if this->orientation == "right" {
+            return Coordinates::new(this->coordonates.x + 1, this->coordonates.y);
+        } else if this->orientation == "down" {
+            return Coordinates::new(this->coordonates.x, this->coordonates.y + 1);
+        } else if this->orientation == "left" {
+            return Coordinates::new(this->coordonates.x - 1, this->coordonates.y);
+        }
+    }
+
+    fn try_step(tried_position: Coordinates): Action {
+        let action = Action::new_simplified(std::string::new("walk"), this->id);
+
+        if this->robotMap.value->is_tile_free(tried_position) {
+            action.new_position.set_value(tried_position);
+            action.new_orientation.set_value(this->orientation);
+            action.tiles_checked.push(this->robotMap.value->get_tile(tried_position)[0]);
+            this->coordonates = tried_position;
+
+            this->memory_map.discover(this->robotMap.value[0], tried_position);
+
+        } else {
+            action.new_position.set_value(this->coordonates);
+            action.new_orientation.set_value(this->orientation);
+            action.tiles_checked.push(this->robotMap.value->get_tile(this->coordonates)[0]);
+
+            let ev = Event::bump();
+
+            this->memory_map.discover(this->robotMap.value[0], this->coordonates);
+
+            action.events.push(ev);
+        }
+
+        return action;
+    }
+
+    fn walk(steps: u32): void {
+        if this->is_running == false {
+            return;
+        }
+
+        for i in std::range<u32>::new(steps) {
+            if(this->battery <= 1) {
+                this->out_of_energy();
+                return;
+            }
+
+            this->battery -= 1;
+
+            let nposition = this->walk_position();
+    
+            let action = this->try_step(nposition);
+
+            this->round_actions.push(action);  
+        }
+    }
+
+    // ------------------- ROTATIONS ------------------------ //
+    fn get_new_orientation(is_right: bool) : std::string {
+        if is_right {
+            if this->orientation == "up" {
+                return std::string::new("right");
+            } else if this->orientation == "right" {
+                return std::string::new("down");
+            } else if this->orientation == "down" {
+                return std::string::new("left");
+            } else if this->orientation == "left" {
+                return std::string::new("up");
+
+            }
+
+        } else {
+            if this->orientation == "up" {
+                return std::string::new("left");
+            } else if this->orientation == "right" {
+                return std::string::new("up");
+            } else if this->orientation == "down" {
+                return std::string::new("right");
+            } else if this->orientation == "left" {
+                return std::string::new("down");
+
+            }
+        }
+    }
+
+    fn turn_left () :void  {
+        if this->is_running == false {
+            return;
+        }
+
+        if(this->battery < 1) {
+            return this->out_of_energy();
+        }
+
+        this->battery -= 1;
+
+        let action = Action::new_simplified(std::string::new("turn-left"), this->id);
+
+        let norentiation = this->get_new_orientation(false);
+        this->orientation = norentiation;
+
+        action.new_orientation.set_value(norentiation);
+        this->round_actions.push(action);
+    }
+
+        fn turn_right () :void  {
+        if this->is_running == false {
+            return;
+        }
+
+        if(this->battery < 1) {
+            return this->out_of_energy();
+        }
+
+        this->battery -= 1;
+
+        let action = Action::new_simplified(std::string::new("turn-right"), this->id);
+
+        let norentiation = this->get_new_orientation(true);
+        this->orientation = norentiation;
+
+        action.new_orientation.set_value(norentiation);
+        this->round_actions.push(action);
+    }
+
+    // ------------------- JUMP ------------------------ //
+
+    fn jumped_positions(): std::Vec<Coordinates> {
+        let positions = std::Vec<Coordinates>::new();
+        let range = 2;
+
+        if this->orientation == "up" {
+            for i in std::range<i32>::new(range + 1) {
+                positions.push(Coordinates::new(this->coordonates.x, this->coordonates.y - (range - i)));
+            }
+
+        } else if this->orientation == "right" {
+            for i in std::range<i32>::new(range + 1) {
+                positions.push(Coordinates::new(this->coordonates.x + (range - i), this->coordonates.y));
+            }
+
+        } else if this->orientation == "down" {
+            for i in std::range<i32>::new(range + 1) {
+                positions.push(Coordinates::new(this->coordonates.x, this->coordonates.y + (range - i)));
+            }
+
+        } else if this->orientation == "left" {
+            for i in std::range<i32>::new(range + 1) {
+                positions.push(Coordinates::new(this->coordonates.x - (range - i) ,this->coordonates.y));
+            }
+
+        }
+
+        return positions;
+    }
+
+    fn try_jump(positions: std::Vec<Coordinates>): std::Vec<Action> {
+        let actions = std::Vec<Action>::new();
+        let cleaned_positions = this->robotMap.value->filter_valid_coordonates(positions);
+
+        let nposition = this->robotMap.value->get_first_free_tile(cleaned_positions);
+        this->coordonates = nposition;
+
+        let moove_action = Action::new_simplified(std::string::new("jump"), this->id);
+        moove_action.new_position.set_value(nposition);
+
+        for i in std::range<i32>::new(cleaned_positions.length) {
+            this->memory_map.discover(this->robotMap.value[0], cleaned_positions[i]);
+            moove_action.tiles_checked.push(this->robotMap.value[0].get_tile(cleaned_positions[i])[0]);
+        }
+
+        if nposition == cleaned_positions[0] {
+            actions.push(moove_action);
+
+            return actions;
+        } else {
+            let furthest = cleaned_positions[0];
+            furthest.print();
+            let tile = this->robotMap.value[0].get_tile(furthest)[0];
+            if tile.has_obstacle() {
+                moove_action.events.push(Event::destroy(tile.obstacle, tile.address));
+                this->robotMap.value[0].get_tile(furthest)->destroy();
+                actions.push(moove_action);
+
+                return actions;
+            } else if tile.has_opponent() {
+                moove_action.events.push(Event::bump());
+                actions.push(moove_action);
+                let hit_action = this->opponent.value->get_hit(15);
+                actions.push(hit_action);
+
+                return actions;
+            } else {
+                moove_action.events.push(Event::bump());
+                actions.push(moove_action);
+            }
+        }
+        return actions;
+    }
+
+    fn jump(): void {
+        if this->is_running == false {
+            return;
+        }
+
+        if this->battery < 4 {
+            this->out_of_energy();
+            return;
+        }
+
+        this->battery -= 4;
+
+        let positions = this->jumped_positions();
+
+        let actions = this->try_jump(positions);
+
+        for i in std::range<i32>::new(actions.length) {
+            this->round_actions.push(actions[i]);  
+        }
+        
+    }
+
+        // ------------------- HIT ------------------------ //
+    fn hitted_positions(): std::Vec<Coordinates> {
+        let x = this->coordonates.x;
+        let y = this->coordonates.y;
+        let positions = std::Vec<Coordinates>::new();
+        let range = 3;
+
+        if this->orientation == "up" {
+            for i in std::range<i32>::new(range) {
+                positions.push(Coordinates::new(x + (i - 1), y - 1));
+            }
+
+        } else if this->orientation == "right" {
+            for i in std::range<i32>::new(range) {
+                positions.push(Coordinates::new(x + 1, y + (i - 1)));
+            }
+
+        } else if this->orientation == "down" {
+            for i in std::range<i32>::new(range) {
+                positions.push(Coordinates::new(x + (i - 1), y + 1));
+            }
+
+        } else if this->orientation == "left" {
+            for i in std::range<i32>::new(range) {
+                positions.push(Coordinates::new(x - 1, y + (i - 1)));
+            }
+        }
+
+        return positions;
+    }
+
+    fn resolve_hit(positions: std::Vec<Coordinates>) : std::Vec<Action> {
+        let actions = std::Vec<Action>::new();
+        let hit_action = Action::new_simplified(std::string::new("hit"), this->id);
+        positions = this->robotMap.value[0].filter_valid_coordonates(positions);
+
+        for i in std::range<i32>::new(positions.length) {
+            let tile = this->robotMap.value[0].get_tile(positions[i])[0];
+            if tile.has_obstacle() {
+                let destroy_event = Event::destroy(tile.obstacle, tile.address);
+                this->robotMap.value[0].get_tile(positions[i])->destroy();
+                hit_action.events.push(destroy_event);
+
+            } else if tile.has_opponent() {
+                let get_hit_action = this->opponent.value->get_hit(this->damage);
+                actions.push(get_hit_action);
+            } 
+        }
+        actions.push(hit_action);
+
+
+
+        return actions;
+    }
+
+
+    fn hit(): void {
+        if this->is_running == false {
+            return;
+        }
+
+        if this->battery < 2 {
+            this->out_of_energy();
+            return;
+        }
+
+        this->battery -= 2;
+
+        let positions = this->hitted_positions();
+
+        let actions = this->resolve_hit(positions);
+
+        for i in std::range<i32>::new(actions.length) {
+            this->round_actions.push(actions[i]);  
+        }
+    }
+
+    // ------------------- PASS ------------------------ //
+
+    fn pass () {
+        this->out_of_energy();
+    }
+
+
+    // ------------------- OUT OF ENERGY ------------------------ //
+
+    fn out_of_energy(): void {
+        let action = Action::new_simplified(std::string::new("OOE"), this->id);
+        this->round_actions.push(action);
+        this->is_running = false;
+        return;
+    }
+
+    // ------------------------ GET-HIT -------------------- //
+
+
+    fn die(): Action{
+        this->status = std::string::new("dead");
+        let die_action = Action::new_simplified(std::string::new("die"), this->id);
+        die_action.events.push(Event::lay_scraps(this->coordonates));
+        return die_action;
+    }
+
+
+    fn get_hit(damage: i32) : Action {
+        if this->hp > damage {
+            this->hp -= damage;
+            let action = Action::new_simplified(std::string::new("get-hit"), this->id);
+            action.damage.set_value(damage);
+            return action;
+
+        } else {
+            return this->die();
+        }
+
+    }
+
+    // -------------------- CHECK ------------------ //
+
+    fn checked_tiles(): std::Vec<Coordinates> {
+        let positions = std::Vec<Coordinates>::new();
+        let x = this->coordonates.x;
+        let y = this->coordonates.y;
+        let range = 3;
+
+
+        if this->orientation == "up" {
+            let aperture = 5;
+            for i in std::range<i32>::new(range) {
+                for j in std::range<i32>::new(aperture) {
+                    positions.push(Coordinates::new(x - (aperture) + 3 + j - i, y - (range - i)));
+                }
+                aperture -= 2;
+            }
+
+        } else if this->orientation == "right" {
+            let aperture = 5;
+            for i in std::range<i32>::new(range) {
+                for j in std::range<i32>::new(aperture) {
+                    positions.push(Coordinates::new(x + (range - i), y - (aperture) + 3 + j - i));
+                }
+                aperture -= 2;
+            }
+
+        } else if this->orientation == "down" {
+            let aperture = 5;
+            for i in std::range<i32>::new(range) {
+                for j in std::range<i32>::new(aperture) {
+                    positions.push(Coordinates::new(x - (aperture) + 3 + j - i, y + (range - i)));
+                }
+                aperture -= 2;
+            }
+
+        } else if this->orientation == "left" {
+            let aperture = 5;
+            for i in std::range<i32>::new(range) {
+                for j in std::range<i32>::new(aperture) {
+                    positions.push(Coordinates::new(x - (range - i), y - (aperture) + 3 + j - i));
+                }
+                aperture -= 2;
+            }
+
+        }
+
+        return positions;
+    }
+
+    fn check_tiles(positions: std::Vec<Coordinates>): Action {
+        let action = Action::new_simplified(std::string::new("check"), this->id);
+
+        positions = this->robotMap.value[0].filter_valid_coordonates(positions);
+
+        for i in std::range<i32>::new(positions.length) {
+            this->memory_map.discover(this->robotMap.value[0], positions[i]);
+            action.tiles_checked.push(this->robotMap.value->get_tile(positions[i])[0]);
+        }
+
+        return action;
+    }
+
+    fn check () : void {
+        if this->is_running == false {
+            return;
+        }
+
+        if this->battery < 1 {
+            this->out_of_energy();
+            return;
+        }
+
+        this->battery -= 1;
+
+        let positions = this->checked_tiles();
+
+        let action = this->check_tiles(positions);
+
+        this->round_actions.push(action);
+    }
+
+    // ------------------- UTILITARIES ------------------------ //
+    fn print_position() : void {
+        std::print(this->id + ": (x: " + std::string::new(std::to_string(this->coordonates.x)) +  ", y: " + std::to_string(this->coordonates.y) + ")");
+    } 
+
+}
+
+// -------------------------------- functions ------------------------------------- //
+
+
+
+fn actions_to_json(actions: std::Vec<Action>) : JsonNode {
+    let action_jsonified = actions.map<JsonNode>(fn (action: Action, u64, const std::Vec<Action>&) : JsonNode {
+        return action.to_json();
+    });
+
+    return JsonNode::new_array(action_jsonified);
+}
+
+fn get_memory_map_from_json(json: JsonNode): MemoryMap {
+    let tiles = std::Vec<std::Vec<Tile *>>::new();
+    let size = json.get_array().length;
+
+    for i in std::range<u64>::new(size) {
+        let ttiles = std::Vec<Tile *>::new();
+        for j in std::range<u64>::new(size) {
+
+            let ground = json[j][i]["ground"].get_string();
+            let obstacle = json[j][i]["obstacle"].get_string();
+            let address = Coordinates::new(json[j][i]["address"]["x"].get_int(),json[j][i]["address"]["y"].get_int());
+            let opponent = json[j][i]["opponent"].get_string();
+            let items = std::Vec<std::string>::new();
+            let tile = Tile::new_ptr(ground, obstacle, address, items, opponent);
+
+            ttiles.push(tile);
+        }
+
+        tiles.push(ttiles);
+    }
+
+    let memory_map = MemoryMap::new(tiles);
+
+    return memory_map;
+}
+
+fn get_robot_from_json(json: JsonNode, opponent: Robot *, robotMap: RobotMap *): Robot {
+    let position = Coordinates::new(json["position"]["x"].get_int(), json["position"]["y"].get_int());
+    let orientation = json["orientation"].get_string();
+    let id = json["robot_id"].get_string();
+
+    let hp = json["hp"].get_int();
+
+    let memory_map = get_memory_map_from_json(json["memory_map"]);
+
+    return Robot::new(id, Optional<RobotMap *>::new(robotMap), orientation, hp, position, Optional<Robot *>::new(opponent), memory_map);
+}
+
+fn get_opponent_from_json(json: JsonNode): Robot * {
+    let id = json["opponent"]["robot_id"].get_string();
+    let hp = json["opponent"]["hp"].get_int();
+
+    return Robot::new_ptr(id, Optional<RobotMap *>::new(), std::string::new("up"), hp, Coordinates::new(0, 0), Optional<Robot *>::new(), MemoryMap::new_empty(3));
+}
+
+fn get_map_from_json(json: JsonNode): RobotMap * {
+    let tiles = std::Vec<std::Vec<Tile *>>::new();
+    let size = json.get_array().length;
+    std::print(size);
+
+    for i in std::range<u64>::new(size) {
+        let ttiles = std::Vec<Tile *>::new();
+        for j in std::range<u64>::new(size) {
+            let ground = json[j][i]["ground"].get_string();
+            let obstacle = json[j][i]["obstacle"].get_string();
+            let address = Coordinates::new(json[j][i]["address"]["x"].get_int(),json[j][i]["address"]["y"].get_int());
+            let opponent = json[j][i]["opponent"].get_string();
+            let items = std::Vec<std::string>::new();
+
+            ttiles.push(Tile::new_ptr(ground, obstacle, address, items, opponent));
+        }
+
+        tiles.push(ttiles);
+    }
+
+    let robotMap = RobotMap::new_ptr(tiles);
+
+    return robotMap;
+}
