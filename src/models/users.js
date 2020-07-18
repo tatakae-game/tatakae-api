@@ -13,7 +13,7 @@ const default_js_code = [{
 
 const default_san_code = [{
   name : 'main.sn',
-  code : 'fn main () {\n    robot.walk();\n}',
+  code : 'fn main (robot: Robot&) {\n    robot.walk(1);\n}',
   is_entrypoint: true
 }]
 
