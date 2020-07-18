@@ -16,7 +16,7 @@ import * as groups_permisions from '../models/groups'
 import { check_include_errors, resolve_files, try_code } from '../services/code.service'
 import { JsRunner } from '../game/js-runner'
 import { generate_field } from '../services/game.service'
-import { SanRunner } from '../game/san-runner'
+import { SanRunner } from '../game/san-runner/san-runner'
 import { verify, hash } from '../utils/hash'
 
 const user_schema = Joi.object().keys({
