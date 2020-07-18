@@ -8,6 +8,8 @@ import * as constants from '../constants'
 import guard from '../middlewares/guard'
 import schema, { SchemaError } from '../middlewares/schema'
 import game_classes from '../game/game-classes'
+import * as lodash from 'lodash'
+
 
 import { ErrorsGenerator } from '../utils/errors'
 
@@ -150,6 +152,7 @@ router.get('/users/:id', guard({ auth: constants.AUTH }), async (req, res) => {
 router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const { files, language } = req.body || {}
+    const registered_code = lodash.cloneDeep(files)
 
     const user = await users.model.findById(req.params.id)
     if (!user) {
@@ -176,6 +179,7 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
       runner = new JsRunner({ js_code: files }, map)
     } else if (language === 'san') {
       runner = new SanRunner({ san_code: files }, map)
+      await runner.ready_code()
     }
 
     if (runner === undefined) {
@@ -193,7 +197,7 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
       })
     }
 
-    user[`${language}_code`] = files
+    user[`${language}_code`] = registered_code
     user.save()
     return res.send({
       success: "true",

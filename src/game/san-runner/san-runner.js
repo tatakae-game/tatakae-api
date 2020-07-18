@@ -10,6 +10,15 @@ export class SanRunner {
         this.language = 'san'
         this.robot = new game_classes.Robot(user.robot, map, user._id)
         this.code = user.san_code
+        this.running_language = user.san_code
+    }
+
+    async ready_code() {
+        const entrypoint = this.code.filter(file => file.is_entrypoint === true)[0]
+        entrypoint.code = replace_main_name(entrypoint.code)
+
+        entrypoint.code = await this.encapsulate_code(entrypoint.code)
+        this.code.push(await this.get_robot_file())
     }
 
 
@@ -107,11 +116,7 @@ export class SanRunner {
             map: this.convert_map(this.robot),
             robot: this.simplified_robot(),
         }
-        const entrypoint = this.code.filter(file => file.is_entrypoint === true)[0]
-        entrypoint.code = replace_main_name(entrypoint.code)
 
-        entrypoint.code = await this.encapsulate_code(entrypoint.code)
-        this.code.push(await this.get_robot_file())
         console.log(this.code)
         return
     }
