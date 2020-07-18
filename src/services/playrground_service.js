@@ -7,7 +7,7 @@ export async function test(files, entrypoint, stdin) {
     try {
         const res = await axios.post(`${playground_url}/run`, {
             "files": files,
-            "stdin": stdin,
+            "args": [stdin],
             "entrypoint": entrypoint,
         })
 

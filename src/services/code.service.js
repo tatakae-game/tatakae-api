@@ -24,17 +24,18 @@ export function check_include_errors(files) {
 }
 
 export function replace_main_name(main_file) {
-  console.log(main_file)
   const matchs = get_all_group_match(main_regex, main_file, 1)
 
   if (matchs.length <= 0) {
-    console.log("Must provide a main function")
+
   } else if (matchs.length > 1){
-    console.log("Multiple main function")
 
   } else {
     main_file = main_file.replace(main_regex, user_main_function)
   }
+  console.log("start")
+  console.log(main_file)
+  console.log("end")
 
   return main_file
 }
