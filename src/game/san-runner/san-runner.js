@@ -31,7 +31,7 @@ export class SanRunner {
             for (let j = 0; j < size; j++) {
                 tiles[i].push({
                     ground: this.map.layers.ground[index],
-                    obstacles: this.map.layers.obstacles[index],
+                    obstacle: this.map.layers.obstacles[index] === null ? "" : this.map.layers.obstacles[index],
                     address: this.map.layers.addresses[index],
                     items: "",
                     opponent: this.map.layers.addresses[index].x === opponent.position.x && this.map.layers.addresses[index].y === opponent.position.y ? opponent.robot_id : "",
