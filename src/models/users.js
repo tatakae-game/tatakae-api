@@ -5,9 +5,15 @@ import db from '../db'
 import * as tokens from './tokens'
 import { get_win_rate } from './game';
 
-const default_code = [{
+const default_js_code = [{
   name : 'index.js',
   code : 'robot.walk(2); robot.turn_right()',
+  is_entrypoint: true
+}]
+
+const default_san_code = [{
+  name : 'main.sn',
+  code : 'fn main () {\n    robot.walk();\n}',
   is_entrypoint: true
 }]
 
@@ -25,8 +31,8 @@ export const model = db.model('User', {
   score: { type: Number, default: 0, },
   created: { type: Date, default: Date.now, },
   robot: { type: String, default: 'default' },
-  js_code: { type: [File], default: default_code },
-  san_code: { type: [File], default: default_code },
+  js_code: { type: [File], default: default_js_code },
+  san_code: { type: [File], default: default_san_code },
   running_language: { type: String, default: 'js' },
 })
 
