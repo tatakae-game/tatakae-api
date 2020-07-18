@@ -4,6 +4,7 @@ import "./source_robot_file"
 
 fn main(argc: i32, argv: i8**) {
     if argc > 1 {
+        
         let error = false;
         let json = JsonNode::parse(argv[1], error);
         let opponent = get_opponent_from_json(json);
