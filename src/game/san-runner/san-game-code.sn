@@ -3,14 +3,16 @@ import "./source_robot_file"
 {{ user_entrypoint_code }}
 
 fn main(argc: i32, argv: i8**) {
-    let testor = get_test_json();
     if argc > 1 {
         let json = argv[1];
-        let opponent = get_opponent_from_json(testor);
-        let robotMap = get_map_from_json(testor["map"]);
-        let robot = get_robot_from_json(testor["robot"], opponent, robotMap);
-        user_super_giga_upra_cool_code(robot);
+        let opponent = get_opponent_from_json(json);
+        let robotMap = get_map_from_json(json["map"]);
+        let robot = get_robot_from_json(json["robot"], opponent, robotMap);    
 
+        while robot.energy > 0 && robot.is_running == true {
+            user_super_giga_upra_cool_code(robot);
+        }
         std::print(actions_to_json(robot.round_actions).stringify());
-    }
+
+    }        
 }
