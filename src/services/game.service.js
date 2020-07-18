@@ -257,7 +257,7 @@ const generate_test_game_config = async (socket, files, language) => {
   }
 
   game_config.map = new game_classes.Map(generate_field())
-  game_config.runners = generate_runners(game_config.players, game_config.map)
+  game_config.runners = await generate_runners(game_config.players, game_config.map)
 
   randomize_initial_robot_position(game_config.runners.map(runner => runner.robot), game_config.map)
 
@@ -274,14 +274,16 @@ async function get_players(token, map) {
   return [requesting_user, opponent]
 }
 
-function generate_runners(players, map) {
+async function generate_runners(players, map) {
   const runners_queue = []
 
   for (const player of players) {
     if (player.running_language === 'js') {
       runners_queue.push(new JsRunner(player, map))
     } else if (player.running_language === 'san') {
-      runners_queue.push(new SanRunner(player, map))
+      const runner = new SanRunner(player, map)
+      await runner.ready_code()
+      runners_queue.push(runner)
     }
   }
   return runners_queue

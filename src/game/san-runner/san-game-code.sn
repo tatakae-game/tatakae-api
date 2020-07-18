@@ -1,4 +1,4 @@
-import "source_robot_file"
+import "./source_robot_file"
 
 {{ user_entrypoint_code }}
 
