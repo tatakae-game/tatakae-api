@@ -18,7 +18,6 @@ export class SanRunner {
         entrypoint.code = replace_main_name(entrypoint.code)
 
         entrypoint.code = await this.encapsulate_code(entrypoint.code)
-
         this.code.push(await this.get_robot_file())
     }
 

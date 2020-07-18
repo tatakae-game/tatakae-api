@@ -101,7 +101,6 @@ export async function find_opponent(user) {
 }
 
 export async function change_points(user_id, points) {
-  console.log(user_id)
   const user = await model.findById(user_id)
 
   user.score += points

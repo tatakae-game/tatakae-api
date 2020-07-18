@@ -215,7 +215,6 @@ router.put('/users/:id/code', guard({ auth: constants.AUTH }), async (req, res) 
 router.put('/user/password', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const { password, new_password } = req.body || {}
-    console.log(password, new_password)
 
     if (!password || !new_password) {
       return res.status(400).json({
@@ -225,7 +224,6 @@ router.put('/user/password', guard({ auth: constants.AUTH }), async (req, res) =
     }
 
     const user = await users.find_by_token(req.token)
-    console.log(user)
 
     if (!user) {
       return res.status(400).json({
@@ -260,7 +258,6 @@ router.put('/user/password', guard({ auth: constants.AUTH }), async (req, res) =
 router.put('/user/language', guard({ auth: constants.AUTH }), async (req, res) => {
   try {
     const { language } = req.body || {}
-    console.log(language)
     const user = await users.find_by_token(req.token)
 
     if (!language) {
