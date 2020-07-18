@@ -15,18 +15,16 @@ export default (io) => {
     try {
       let game_configuration
       if (socket.handshake.query.test === 'true') {
-        if (socket.handshake.query.language === 'san') {
-          return socket.emit('err', {
-            error: ['SAN language test not implemented yet']
-          })
-        }
         const files = JSON.parse(atob(socket.handshake.query.code))
 
-        const include_errors = check_include_errors(files)
-        if (include_errors.length !== 0) {
-          return socket.emit('err', {
-            error: include_errors
-          })
+        if (socket.handshake.query.language === 'js') {
+          const include_errors = check_include_errors(files)
+          if (include_errors.length !== 0) {
+
+            return socket.emit('err', {
+              error: include_errors
+            })
+          }
         }
 
         game_configuration = await game_service.generate_test_game_config(socket, files, socket.handshake.query.language)
@@ -34,6 +32,12 @@ export default (io) => {
         if (errors) {
           return socket.emit('err', {
             error: errors
+          })
+        }
+        
+        if (socket.handshake.query.language === 'san') {
+          return socket.emit('err', {
+            error: ['SAN language test not implemented yet']
           })
         }
 
