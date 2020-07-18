@@ -2,6 +2,7 @@ import game_classes from '../game-classes'
 import { replace_main_name } from '../../services/code.service'
 import * as fs from 'fs'
 import * as path from 'path'
+import { execute_code, test } from '../../services/playrground_service'
 
 export class SanRunner {
 
@@ -17,6 +18,7 @@ export class SanRunner {
         entrypoint.code = replace_main_name(entrypoint.code)
 
         entrypoint.code = await this.encapsulate_code(entrypoint.code)
+
         this.code.push(await this.get_robot_file())
     }
 
@@ -48,7 +50,7 @@ export class SanRunner {
         for (let i = 0; i < size; i++) {
             tiles[i] = []
             for (let j = 0; j < size; j++) {
-                if (memory_map[index] === 'not discovered') {
+                if (memory_map[index] === 'not_discovered') {
                     tiles[i].push(null)
                 } else {
                     tiles[i].push(memory_map[index])
@@ -63,6 +65,7 @@ export class SanRunner {
     simplified_robot() {
         return {
             orientation: this.robot.orientation,
+            position: this.robot.position,
             memory_map: this.convert_memory_map(this.robot.memory_map),
             robot_id: this.robot.robot_id,
             hp: this.robot.hp,
@@ -106,6 +109,23 @@ export class SanRunner {
         }
     }
 
+    convert_files_to_api_format() {
+        const files = {}
+        const files_array = this.code.map(file => {
+            return {
+                [file.name]: file.code
+            }
+        })
+
+        for (const file of files_array) {
+            for (const prop in file) {
+                files[prop] = file[prop]
+            }
+        }
+
+        return files
+    }
+
     async test() {
         const data = {
             opponent: {
@@ -116,8 +136,13 @@ export class SanRunner {
             robot: this.simplified_robot(),
         }
 
-        console.log(this.code)
-        return
+        const errors = await test(
+            this.convert_files_to_api_format(),
+            this.code.filter(file => file.is_entrypoint === true)[0].name,
+            JSON.stringify(data)
+        )
+
+        return errors
     }
 
     async run(opponent) {
@@ -130,7 +155,15 @@ export class SanRunner {
             robot: this.simplified_robot(),
         }
 
+        const stdout = await execute_code(
+            this.convert_files_to_api_format(),
+            this.code.filter(file => file.is_entrypoint === true)[0].name,
+            JSON.stringify(data)
+        )
+
+        console.log(stdout)
+
+        return stdout
         // DATA TO SEND STRINGIFIED TO SAN
-        console.log(data)
     }
 }
