@@ -341,7 +341,7 @@ class Action {
         action.insert("tiles_checked", tiles_checked_json);
 
         if !this->new_orientation.is_null {
-            action.insert("new_orientation", this->new_orientation.value);
+            action.insert("orientation", this->new_orientation.value);
         }
 
         if !this->new_position.is_null {
