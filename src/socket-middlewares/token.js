@@ -6,7 +6,6 @@ import * as tokens from '../models/tokens'
  */
 export default async (socket, next) => {
   socket.token = socket.handshake.headers?.authorization || socket.handshake.query?.token
-  console.log(socket.token)
 
   if (await tokens.check(socket.token)) {
     next()

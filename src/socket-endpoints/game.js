@@ -48,7 +48,6 @@ export default (io) => {
       while (turn > 0 && !game_configuration.all_killed) {
         const round_runner = game_configuration.runners.shift()
         const round_actions = await round_runner.run(game_configuration.runners.map(runner => runner.robot))
-        console.log(round_actions)
         game_configuration.runners.push(round_runner)
         game_service.end_round(socket, round_actions, game_configuration)
         game_actions.push(...round_actions.actions)
