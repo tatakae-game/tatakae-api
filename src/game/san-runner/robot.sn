@@ -237,10 +237,16 @@ class Tile {
 
     fn to_json(): JsonNode {
         let tile_json = JsonNode::new_object();       
-        tile_json.insert("ground", this->ground);     
-        tile_json.insert("obstacle", this->obstacle); 
+        tile_json.insert("ground", this->ground);  
+
+        if this->obstacle == "" {
+            tile_json.insert("obstacle", JsonNode::new_null()); 
+        } else {
+            tile_json.insert("obstacle", this->obstacle); 
+        }
+        
         tile_json.insert("items", JsonNode::new_array()); 
-        tile_json.insert("address", this->address.to_json());
+        tile_json.insert("addresses", this->address.to_json());
 
         return tile_json;
     }
