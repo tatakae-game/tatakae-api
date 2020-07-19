@@ -42,7 +42,7 @@ export class SanRunner {
         return tiles
     }
 
-    convert_memory_map(memory_map) {
+    convert_memory_map(memory_map, opponent) {
         let index = 0
         const tiles = []
         const size = Math.sqrt(this.map.layers.ground.length)
@@ -52,6 +52,12 @@ export class SanRunner {
                 if (memory_map[index] === 'not_discovered') {
                     tiles[i].push(null)
                 } else {
+                    const tile = memory_map[index]
+                    if (opponent.position.x === tile.addresses.x && opponent.position.x === tile.addresses.x) {
+                        tile.opponent = opponent.robot_id
+                    } else {
+                        tile.opponent = ""
+                    }
                     tiles[i].push(memory_map[index])
                 }
                 index += 1
@@ -61,11 +67,11 @@ export class SanRunner {
     }
 
 
-    simplified_robot() {
+    simplified_robot(opponent) {
         return {
             orientation: this.robot.orientation,
             position: this.robot.position,
-            memory_map: this.convert_memory_map(this.robot.memory_map),
+            memory_map: this.convert_memory_map(this.robot.memory_map, opponent[0]),
             robot_id: this.robot.robot_id,
             hp: this.robot.hp,
 
@@ -132,7 +138,7 @@ export class SanRunner {
                 id: this.robot.robot_id,
             },
             map: this.convert_map(this.robot),
-            robot: this.simplified_robot(),
+            robot: this.simplified_robot(this.robot),
         }
 
         const errors = await test(
@@ -146,7 +152,6 @@ export class SanRunner {
 
     get_actions_from_stdout(stdout) {
         const json = JSON.parse(stdout)
-        console.log(json)
 
         return { actions: json }
     }
@@ -158,7 +163,7 @@ export class SanRunner {
                 id: opponent[0].robot_id,
             },
             map: this.convert_map(opponent[0]),
-            robot: this.simplified_robot(),
+            robot: this.simplified_robot(opponent),
         }
 
         const stdout = await execute_code(
