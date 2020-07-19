@@ -144,13 +144,20 @@ export class SanRunner {
         return errors
     }
 
+    get_actions_from_stdout(stdout) {
+        const json = JSON.parse(stdout)
+        console.log(json)
+
+        return { actions: json }
+    }
+
     async run(opponent) {
         const data = {
             opponent: {
-                hp: opponent.hp,
-                id: opponent.robot_id,
+                hp: opponent[0].hp,
+                id: opponent[0].robot_id,
             },
-            map: this.convert_map(opponent),
+            map: this.convert_map(opponent[0]),
             robot: this.simplified_robot(),
         }
 
@@ -160,9 +167,11 @@ export class SanRunner {
             JSON.stringify(data)
         )
 
+        const actions = this.get_actions_from_stdout(stdout)
+
         console.log(stdout)
 
-        return stdout
+        return actions
         // DATA TO SEND STRINGIFIED TO SAN
     }
 }
