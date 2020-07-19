@@ -34,3 +34,8 @@ export function fill_groups_permissions(groups) {
   }
   return groups
 }
+
+export async function get_group_id_by_name(group_name) {
+  const group = await model.findOne({ name: group_name })
+  return group._id
+}

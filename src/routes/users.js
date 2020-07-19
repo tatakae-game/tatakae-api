@@ -292,6 +292,53 @@ router.put('/user/language', guard({ auth: constants.AUTH }), async (req, res) =
   }
 })
 
+router.put('/users/groups/:id', guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_DASHBOARD] }), async (req, res) => {
+
+  try {
+
+    const { groups } = req.body || {}
+    const user = await users.model.findById({ _id: req.params.id })
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        error: ['The user does not exist.'],
+      })
+    }
+
+    const groups_stored = (await groups_permisions.model.find()).map(group => group.name);
+
+    for (const group of groups) {
+
+      if (!groups_stored.includes(group)) {
+        return res.status(400).json({
+          success: false,
+          error: [`${group} group does not exist.`],
+        })
+      }
+    }
+
+    const group_to_add = (await Promise.all(groups.map((group) => groups_permisions.get_group_id_by_name(group))))
+
+    await users.model.updateOne(
+      { _id: req.params.id },
+      {
+        groups: group_to_add,
+      }
+    )
+
+    res.status(200).json({
+      success: true,
+    })
+
+  } catch {
+    res.status(500).json({
+      success: false,
+      errors: ['An error occured'],
+    })
+  }
+})
+
 router.put('/users/:id', guard({ auth: constants.AUTH }), schema({ body: user_schema }), async (req, res) => {
 
   try {
