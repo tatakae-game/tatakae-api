@@ -984,12 +984,12 @@ fn get_memory_map_from_json(json: JsonNode): MemoryMap {
             } else {
                 let ground = json[j][i]["ground"].get_string();
                 let obstacle = json[j][i]["obstacle"].get_string();
-                let address = Coordinates::new(json[j][i]["addresses"]["x"].get_int(),json[j][i]["addresses"]["y"].get_int());
-                let opponent = json[j][i]["opponent"].get_string();
-                let items = std::Vec<std::string>::new();
-                let tile = Tile::new_ptr(ground, obstacle, address, items, opponent);
+                //let address = Coordinates::new(json[j][i]["addresses"]["x"].get_int(),json[j][i]["addresses"]["y"].get_int());
+                //let opponent = json[j][i]["opponent"].get_string();
+                //let items = std::Vec<std::string>::new();
+                //let tile = Tile::new_ptr(ground, obstacle, address, items, opponent);
 
-                ttiles.push(tile);
+                ttiles.push(null);
             }
         }
 
@@ -1029,7 +1029,7 @@ fn get_map_from_json(json: JsonNode): RobotMap * {
         for j in std::range<u64>::new(size) {
             let ground = json[j][i]["ground"].get_string();
             let obstacle = json[j][i]["obstacle"].get_string();
-            let address = Coordinates::new(json[j][i]["address"]["x"].get_int(),json[j][i]["address"]["y"].get_int());
+            let address = Coordinates::new(json[i][j]["address"]["x"].get_int(),json[i][j]["address"]["y"].get_int());
             let opponent = json[j][i]["opponent"].get_string();
             let items = std::Vec<std::string>::new();
 
