@@ -295,7 +295,7 @@ const start_game = async (socket) => {
     players: await get_players(socket.token),
   }
   game_config.map = new game_classes.Map(generate_field())
-  game_config.runners = generate_runners(game_config.players, game_config.map)
+  game_config.runners = await generate_runners(game_config.players, game_config.map)
 
   randomize_initial_robot_position(game_config.runners.map(runners => runners.robot), game_config.map)
 
