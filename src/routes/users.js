@@ -44,6 +44,24 @@ router.get('/users/me', guard({ auth: constants.AUTH }), async (req, res) => {
   })
 })
 
+router.get('/users', guard({ auth: constants.AUTH }, { permissions: [constants.PERMISSION_DASHBOARD] }), async (req, res) => {
+  try {
+
+    const result = await users.model.find()
+
+    return res.send({
+      success: true,
+      users: result.map(user => users.groups_sanitize(user)),
+    })
+  } catch (e) {
+    return res.status(500).json({
+      success: false,
+      errors: [e],
+    })
+  }
+
+})
+
 router.get('/users/search', guard({ auth: constants.AUTH }), async (req, res) => {
   const { username } = req.query
 

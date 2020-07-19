@@ -72,6 +72,16 @@ export async function sanitize(user) {
   }
 }
 
+export function groups_sanitize(user) {
+  if (!user) return {}
+
+  return {
+    id: user._id,
+    username: user.username,
+    groups: user.groups
+  }
+}
+
 export async function find_opponent(user) {
   const closest_high_opponents = await model.find({
     score: {
