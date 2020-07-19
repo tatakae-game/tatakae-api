@@ -1,8 +1,9 @@
-import game_classes from '../game-classes'
-import { replace_main_name } from '../../services/code.service'
 import * as fs from 'fs'
 import * as path from 'path'
+
+import game_classes from '../game-classes'
 import { execute_code, test } from '../../services/playrground_service'
+import { replace_main_name } from '../../services/code.service'
 
 export class SanRunner {
 
@@ -174,7 +175,6 @@ export class SanRunner {
 
         const actions = this.get_actions_from_stdout(stdout)
 
-        console.log(stdout)
 
         return actions
         // DATA TO SEND STRINGIFIED TO SAN
