@@ -63,6 +63,6 @@ export async function get_win_rate(user_id) {
 
   return {
     games: user_games.length,
-    wins: user_games.filter(game => game.winner === user_id).length
+    wins: user_games.filter(game => game.winners.includes(user_id)).length
   }
 }
