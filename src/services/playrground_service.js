@@ -20,6 +20,7 @@ export async function test(files, entrypoint, stdin) {
 }
 
 export async function execute_code(files, entrypoint, stdin) {
+    console.log(stdin)
     try {
         const res = await axios.post(`${playground_url}/run`, {
             "files": files,
@@ -31,6 +32,5 @@ export async function execute_code(files, entrypoint, stdin) {
 
     } catch (e) {
         console.log(e)
-        console.log('eh merde')
     }
 }
