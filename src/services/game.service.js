@@ -179,7 +179,6 @@ const end_round = (socket, actions, game_configuration) => {
   update_robot(actions, game_configuration.runners.map(runner => runner.robot))
   if (game_configuration.runners.filter(runner => runner.robot.status === 'alive').length <= 1) {
     game_configuration.all_killed = true
-    end_game(socket, game_configuration)
   } else {
     socket.emit('round actions', actions)
   }
@@ -198,7 +197,7 @@ const end_game = async (socket, game_configuration) => {
     const losers_id = losers.map(loser => loser.robot.robot_id)
 
     for (const winner_id of winners_id) {
-      await users.change_points(winners_id, 1)
+      await users.change_points(winner_id, 1)
     }
 
     for (const loser_id of losers_id) {
