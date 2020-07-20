@@ -37,6 +37,10 @@ export default (io) => {
 
       } else {
         game_configuration = await game_service.start_game(socket)
+        if (game_configuration.error) {
+          socket.emit('err', {error: game_configuration.error})
+          return socket.disconnect(true)
+        }
       }
 
       game_service.emit_game_start(socket, game_configuration)
