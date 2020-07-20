@@ -311,7 +311,7 @@ router.put('/user/language', guard({ auth: constants.AUTH }), async (req, res) =
 })
 
 router.put('/users/groups/:id', guard({ auth: constants.AUTH, permissions: [constants.PERMISSION_DASHBOARD] }), async (req, res) => {
-
+    console.log(req.body)
   try {
 
     const { groups } = req.body || {}
@@ -324,10 +324,9 @@ router.put('/users/groups/:id', guard({ auth: constants.AUTH, permissions: [cons
       })
     }
 
-    const groups_stored = (await groups_permisions.model.find()).map(group => group.name);
+    const groups_stored = (await groups_permisions.model.find()).map(group => group._id.toString());
 
     for (const group of groups) {
-
       if (!groups_stored.includes(group)) {
         return res.status(400).json({
           success: false,
@@ -335,8 +334,8 @@ router.put('/users/groups/:id', guard({ auth: constants.AUTH, permissions: [cons
         })
       }
     }
-
-    const group_to_add = (await Promise.all(groups.map((group) => groups_permisions.get_group_id_by_name(group))))
+    
+    const group_to_add = (await Promise.all(groups.map((group) => groups_permisions.model.findById(group))))
 
     await users.model.updateOne(
       { _id: req.params.id },
