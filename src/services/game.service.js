@@ -212,7 +212,7 @@ const end_game = async (socket, game_configuration) => {
 
     await register_game(game_configuration, winners_id, losers_id)
 
-    emit_end_game(socket, winners, losers_id)
+    emit_end_game(socket, winners_id, losers_id)
   }
 }
 
