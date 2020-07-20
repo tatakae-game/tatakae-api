@@ -755,6 +755,7 @@ class Robot {
     }
 
         // ------------------- HIT ------------------------ //
+
     fn hitted_positions(): std::Vec<Coordinates> {
         let x = this->coordonates.x;
         let y = this->coordonates.y;
@@ -829,6 +830,12 @@ class Robot {
         for i in std::range<i32>::new(actions.length) {
             this->round_actions.push(actions[i]);  
         }
+    }
+
+    // ------------------- PASS ------------------------ //
+
+    fn remember (): std::Vec<Tile *> {
+        return this->memory_map.get_discovered();
     }
 
     // ------------------- PASS ------------------------ //
