@@ -55,7 +55,7 @@ export default (io) => {
       }
 
       game_configuration.actions = game_actions
-      game_service.end_game(socket, game_configuration)
+      await game_service.end_game(socket, game_configuration)
 
       socket.disconnect(true)
 
