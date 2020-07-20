@@ -179,15 +179,21 @@ const end_round = (socket, actions, game_configuration) => {
   update_robot(actions, game_configuration.runners.map(runner => runner.robot))
   if (game_configuration.runners.filter(runner => runner.robot.status === 'alive').length <= 1) {
     game_configuration.all_killed = true
-  } else {
-    socket.emit('round actions', actions)
   }
+  socket.emit('round actions', actions)
 }
 
 const end_game = async (socket, game_configuration) => {
 
   if (game_configuration.test) {
-    socket.emit('end test phase')
+    socket.emit('end test phase', {
+      robots: game_configuration.runners.map(runner => {
+        return {
+          id: runner.robot.robot_id,
+          hp: runner.robot.hp
+        }
+      }),
+    })
   } else {
 
     const winners = game_configuration.runners.filter(runner => runner.robot.status === 'alive')
@@ -201,13 +207,12 @@ const end_game = async (socket, game_configuration) => {
     }
 
     for (const loser_id of losers_id) {
-      await users.change_points(loser_id -1)
+      await users.change_points(loser_id, -1)
     }
 
     await register_game(game_configuration, winners_id, losers_id)
 
     emit_end_game(socket, winners, losers_id)
-
   }
 }
 
