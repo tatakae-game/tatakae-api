@@ -77,7 +77,7 @@ router.get('/users/search', guard({ auth: constants.AUTH }), async (req, res) =>
 
       res.send({
         success: true,
-        users: found.map(users.sanitize),
+        users: await Promise.all(found.map(users.sanitize)),
       })
     } catch {
       res.send({
