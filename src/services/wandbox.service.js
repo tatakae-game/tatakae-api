@@ -27,6 +27,11 @@ export async function get_errors(code) {
       code,
       compiler: "nodejs-head",
     })
+
+    if (res.data.signal === 'Killed') {
+      res.data.program_error = "Signal Killed. Please check for infinite loop"
+    }
+
     return res.data.program_error
   } catch (e) {
     console.log(e)
