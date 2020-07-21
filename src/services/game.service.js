@@ -60,8 +60,20 @@ const generate_field = () => {
   return instantiate_empty_fields(field_size, field_type)
 }
 
-function sanitize_robot_data(robot) {
+async function sanitize_robot_data(robot) {
+  let username
+
+  if(robot.robot_id === 'opponent'){
+    username = robot.robot_id
+  } else if (robot.robot_id === 'testor') {
+    username = robot.robot_id
+  } else {
+    const user = await users.model.findById(robot.robot_id)
+    username = user.username
+  }
+  
   return {
+    username,
     id: robot.robot_id,
     hp: robot.hp,
     model: robot.model,
