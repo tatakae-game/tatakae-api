@@ -142,13 +142,20 @@ export class SanRunner {
             robot: this.simplified_robot(this.robot),
         }
 
-        const errors = await test(
+        const std = await test(
             this.convert_files_to_api_format(),
             this.code.filter(file => file.is_entrypoint === true)[0].name,
             JSON.stringify(data)
         )
 
-        return errors
+        if (std.error) {
+            if (std.stderr !== "") {
+                return std.stderr
+            } else {
+                return ["An error occured. Please check for infinite loop or segfault"]
+            }
+        }
+
     }
 
     get_actions_from_stdout(stdout) {
@@ -167,13 +174,17 @@ export class SanRunner {
             robot: this.simplified_robot(opponent),
         }
 
-        const stdout = await execute_code(
+        const std = await execute_code(
             this.convert_files_to_api_format(),
             this.code.filter(file => file.is_entrypoint === true)[0].name,
             JSON.stringify(data)
         )
 
-        const actions = this.get_actions_from_stdout(stdout)
+        if (std.error) {
+            return { error: ["An error occured. Please check for infinite loop or segfault"] }
+        }
+
+        const actions = this.get_actions_from_stdout(std.stdout)
 
 
         return actions
