@@ -273,6 +273,10 @@ class Robot {
     return this.memory_map.filter(x => x != 'not_discovered')
   }
 
+  remember() {
+    return this.get_memorized_tiles()
+  }
+
 }
 
 class Map {

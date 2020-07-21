@@ -10,6 +10,10 @@ export async function execute_code(code) {
       compiler: "nodejs-head",
     })
 
+    if (res.data.signal === 'Killed') {
+      return {error : "Signal Killed. Please check for infinite loop"}
+    }
+
     if (!res.data.program_output) {
       return res.data
     }
