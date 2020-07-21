@@ -258,7 +258,7 @@ router.put('/user/password', guard({ auth: constants.AUTH }), async (req, res) =
       })
     }
 
-    user.password = hash(new_password)
+    user.password = await hash(new_password)
     user.save()
 
     return res.status(200).json({
