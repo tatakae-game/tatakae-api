@@ -63,7 +63,7 @@ const generate_field = () => {
 async function sanitize_robot_data(robot) {
   let username
 
-  if(robot.robot_id === 'opponent'){
+  if (robot.robot_id === 'opponent') {
     username = robot.robot_id
   } else if (robot.robot_id === 'testor') {
     username = robot.robot_id
@@ -71,7 +71,7 @@ async function sanitize_robot_data(robot) {
     const user = await users.model.findById(robot.robot_id)
     username = user.username
   }
-  
+
   return {
     username,
     id: robot.robot_id,
@@ -261,7 +261,7 @@ const generate_test_game_config = async (socket, files, language) => {
     ]
   }
 
-  if(language === 'js'){
+  if (language === 'js') {
     game_config.players[0].js_code = files
     game_config.players[1].js_code = files
   } else if (language === 'san') {
@@ -312,7 +312,7 @@ const start_game = async (socket) => {
   }
 
   if (game_config.players[1] === undefined) {
-    return {error: 'There is no available opponent yet.'}
+    return { error: 'There is no available opponent yet.' }
   }
   game_config.map = new game_classes.Map(generate_field())
   game_config.runners = await generate_runners(game_config.players, game_config.map)
@@ -325,19 +325,20 @@ const start_game = async (socket) => {
 
 }
 
-function generate_spawn_actions(robots) {
+async function generate_spawn_actions(robots) {
   return {
-    actions: robots.map(
-      robot => ({
+    actions: await Promise.all(robots.map(
+      async (robot) => ({
         name: 'spawn',
-        unit: sanitize_robot_data(robot)
+        unit: await sanitize_robot_data(robot)
       })
+    )
     )
   }
 }
 
-const emit_robot_spawn = (socket, game_configuration) => {
-  socket.emit('spawn', generate_spawn_actions(game_configuration.runners.map(runner => runner.robot)))
+const emit_robot_spawn = async (socket, game_configuration) => {
+  socket.emit('spawn', await generate_spawn_actions(game_configuration.runners.map(runner => runner.robot)))
 }
 
 const get_first_free_tile = (side, map) => {
