@@ -38,8 +38,8 @@ describe('robot', () => {
       })
     })
 
-    describe("from_instance()", () => {
-      it("should return exact copy of passed robot", () => {
+    describe('from_instance()', () => {
+      it('should return exact copy of passed robot', () => {
         const field = game_services.generate_field()
         const map = new game_classes.Map(field)
         const robot = new game_classes.Robot('default', map, user_ids[0])
@@ -763,8 +763,8 @@ describe('map', () => {
     })
   })
 
-  describe("set_enemy_robots()", () => {
-    it("should position robot on according tile on opponent layer", () => {
+  describe('set_enemy_robots()', () => {
+    it('should position robot on according tile on opponent layer', () => {
       const field = game_services.generate_field()
       const map = new game_classes.Map(field)
 
@@ -779,8 +779,8 @@ describe('map', () => {
     })
   })
 
-  describe("get_hitted_tiles()", () => {
-    it("should return the 3 cases in font of the robot, depending of its orientation", () => {
+  describe('get_hitted_tiles()', () => {
+    it('should return the 3 cases in font of the robot, depending of its orientation', () => {
       const field = game_services.generate_field()
       const map = new game_classes.Map(field)
 
@@ -799,8 +799,8 @@ describe('map', () => {
     })
   })
 
-  describe("get_jumped_tiles()", () => {
-    it("should return the 2 cases in line in front of the robot, and the robot position, depending of its orientation", () => {
+  describe('get_jumped_tiles()', () => {
+    it('should return the 2 cases in line in front of the robot, and the robot position, depending of its orientation', () => {
       const field = game_services.generate_field()
       const map = new game_classes.Map(field)
 
