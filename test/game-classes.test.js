@@ -3,7 +3,6 @@ import { strict as assert, AssertionError } from 'assert'
 import game_classes from '../src/game/game-classes'
 import * as game_services from '../src/services/game.service'
 
-
 const user_ids = ['1203ascasc123', '1203ascasc153', '1203ascasc193', '1203ascasc1123']
 const default_costs = game_classes.Robot.models.default.moove_costs
 
