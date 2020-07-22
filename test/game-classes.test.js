@@ -76,7 +76,6 @@ describe('robot', () => {
 
       assert.equal(robot.position.x, 0)
       assert.equal(robot.position.y, 0)
-
     })
 
     it('should remove 2 * n-distance battery for every movement', () => {
@@ -154,7 +153,6 @@ describe('robot', () => {
         assert.equal(action.name, 'walk')
         assert.equal(action.new_position.x, 0 + added_step++)
         assert.equal(action.new_position.y, 0)
-
       }
     })
   })
@@ -188,7 +186,6 @@ describe('robot', () => {
       robot.turn_right()
 
       assert.equal(robot.orientation, 'down')
-
     })
 
     it('should remove 1 battery by rotation', () => {
@@ -199,7 +196,6 @@ describe('robot', () => {
       robot.turn_right()
 
       assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - 1)
-
     })
 
     it('should unable rotate if energy < 1 and report by an OOE', () => {
@@ -252,7 +248,6 @@ describe('robot', () => {
       robot.turn_left()
 
       assert.equal(robot.orientation, 'up')
-
     })
 
     it('should remove 1 battery by rotation', () => {
@@ -263,7 +258,6 @@ describe('robot', () => {
       robot.turn_left()
 
       assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - 1)
-
     })
 
     it('should unable rotate if energy < 1 and report by an OOE', () => {
@@ -339,7 +333,6 @@ describe('robot', () => {
       for (const layer in map_layers2) {
         assert.equal(map_layers2[layer], robot.memory_map[robot.map.get_index_by_address(original_position.x + 2, original_position.y)][layer])
       }
-
     })
 
     it('should bump on tile if it contains obstacle and destroy it, and report it', () => {
@@ -370,7 +363,6 @@ describe('robot', () => {
       robot.jump()
       assert.equal(robot.position.x, 0)
       assert.equal(robot.position.y, 0)
-
     })
 
     it('should bump on adversary and hurt him for 15hp', () => {
@@ -460,7 +452,6 @@ describe('hit()', () => {
     robot.hit()
 
     assert.equal(robot.round_movements.actions[0].name, 'OOE')
-
   })
 
   it('remove 2 battery on trigger', () => {
@@ -472,7 +463,6 @@ describe('hit()', () => {
     robot.hit()
 
     assert.equal(robot.battery, game_classes.Robot.models[robot.model].battery - 2)
-
   })
 
   it('should damage opponent robot by robot.damage if opponent is on a tile in front of robot', () => {
@@ -636,7 +626,6 @@ describe('map', () => {
       assert.notEqual(map.layers.obstacles, null)
 
       assert.equal(map.square_size, Math.sqrt(map.layers.addresses.length))
-
     })
   })
 
@@ -653,7 +642,6 @@ describe('map', () => {
       assert.equal(test.obstacles, null)
       assert.equal(test.addresses.x, 0)
       assert.equal(test.addresses.y, 0)
-
     })
   })
 
@@ -713,7 +701,6 @@ describe('map', () => {
       const map = new game_classes.Map(field)
 
       assert.equal(false, map.is_inbound(map.square_size, 0))
-
     })
   })
 
@@ -759,7 +746,6 @@ describe('map', () => {
       map.set_enemy_robots([robot])
 
       assert.equal(null, map.get_enemy_on_tile({ x: 0, y: 3 }))
-
     })
   })
 
@@ -795,7 +781,6 @@ describe('map', () => {
       assert.equal(tiles[0].x, robot.position.x - 1)
       assert.equal(tiles[1].x, robot.position.x)
       assert.equal(tiles[2].x, robot.position.x + 1)
-
     })
   })
 
@@ -815,8 +800,6 @@ describe('map', () => {
       assert.equal(tiles[0].y, robot.position.y + 2)
       assert.equal(tiles[1].y, robot.position.y + 1)
       assert.equal(tiles[2].y, robot.position.y)
-
-
     })
   })
 })  
